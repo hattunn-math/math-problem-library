@@ -1,47 +1,17 @@
 [
   {
-    "id": "sample-001",
-    "title": "二次関数 基礎演習",
-    "subject": "数学Ⅰ",
-    "unit": "二次関数",
-    "difficulty": 2,
-    "tags": [
-      "基礎",
-      "定期考査"
-    ],
-    "problemUrl": "https://example.com/problem-001.pdf",
-    "answerUrl": "https://example.com/answer-001.pdf",
-    "note": "サンプル問題です。公開前にOneDriveの共有リンクへ差し替えてください。",
-    "createdAt": "2026-08-10T00:00:00.000Z"
-  },
-  {
-    "id": "sample-002",
-    "title": "微分法 推薦入試対策",
+    "id": "2299551c-c225-4773-9c42-8b6258a83e2b",
+    "title": "微分法の計算",
     "subject": "数学Ⅲ",
     "unit": "微分法",
-    "difficulty": 3,
+    "difficulty": 1,
     "tags": [
-      "推薦入試",
-      "微分"
+      "微分",
+      "計算"
     ],
-    "problemUrl": "https://example.com/problem-002.pdf",
-    "answerUrl": "https://example.com/answer-002.pdf",
-    "note": "サンプル問題です。",
-    "createdAt": "2026-08-09T00:00:00.000Z"
-  },
-  {
-    "id": "sample-003",
-    "title": "場合の数・確率 標準問題",
-    "subject": "数学A",
-    "unit": "場合の数と確率",
-    "difficulty": 3,
-    "tags": [
-      "標準",
-      "入試対策"
-    ],
-    "problemUrl": "https://example.com/problem-003.pdf",
-    "answerUrl": "",
-    "note": "解答なしの表示確認用サンプルです。",
-    "createdAt": "2026-08-08T00:00:00.000Z"
+    "problemUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQCFAwbaJ3ocQ5nYwy2XqtMUARGYCnenbua1C7TH5mj6nXo?e=2xrUZ0",
+    "answerUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQCFAwbaJ3ocQ5nYwy2XqtMUARGYCnenbua1C7TH5mj6nXo?e=2xrUZ0",
+    "note": "制限時間10分",
+    "createdAt": "2026-08-10T05:00:13.839Z"
   }
 ]
