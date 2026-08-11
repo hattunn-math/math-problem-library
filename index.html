@@ -7,6 +7,16 @@
   <title>数学問題ライブラリ</title>
   <meta name="description" content="単元・難易度・タグから数学の問題PDFを検索できる生徒向けページです。">
   <link rel="stylesheet" href="./assets/styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -22,7 +32,17 @@
     </div>
   </header>
 
-  <main class="container main-grid">
+
+  <nav class="container view-switcher" aria-label="表示切替">
+    <button id="showLibraryView" class="view-switch-button active" type="button" aria-pressed="true">
+      📚 問題ライブラリ
+    </button>
+    <button id="showTrainingView" class="view-switch-button" type="button" aria-pressed="false">
+      🧮 計算トレーニング
+    </button>
+  </nav>
+
+  <section id="libraryView" class="container main-grid site-view" aria-label="問題ライブラリ">
     <aside class="filter-panel" aria-label="検索条件">
       <div class="panel-title-row">
         <h2>問題を絞り込む</h2>
@@ -140,7 +160,105 @@
         <p>公開ファイル <code>data/problems.json</code> を確認してください。</p>
       </div>
     </section>
-  </main>
+  </section>
+
+  <section id="trainingView" class="container training-view site-view" aria-label="計算トレーニング" hidden>
+    <div class="training-intro">
+      <div>
+        <p class="results-label">AUTO PRACTICE</p>
+        <h2>🧮 計算トレーニング</h2>
+        <p>分野・難易度・問題数を選ぶと、その場で新しい計算問題を自動生成します。</p>
+      </div>
+      <div class="training-free-badge">何度でも生成</div>
+    </div>
+
+    <div class="training-layout">
+      <aside class="training-controls">
+        <div class="panel-title-row">
+          <h2>出題設定</h2>
+        </div>
+
+        <label class="field">
+          <span>分野</span>
+          <select id="trainingCategory">
+            <optgroup label="式と計算">
+              <option value="expand">展開</option>
+              <option value="factor">因数分解</option>
+            </optgroup>
+            <optgroup label="二次関数">
+              <option value="completeSquare">平方完成</option>
+            </optgroup>
+            <optgroup label="数学Ⅱ・微積分">
+              <option value="diff2">微分（数学Ⅱ）</option>
+              <option value="indef2">不定積分（数学Ⅱ）</option>
+              <option value="def2">定積分（数学Ⅱ）</option>
+            </optgroup>
+            <optgroup label="数学Ⅲ・微積分">
+              <option value="diff3">微分（数学Ⅲ）</option>
+              <option value="indef3">不定積分（数学Ⅲ）</option>
+              <option value="def3">定積分（数学Ⅲ）</option>
+            </optgroup>
+          </select>
+          <small id="categoryGroupLabel">【式と計算】</small>
+        </label>
+
+        <label class="field">
+          <span>難易度</span>
+          <select id="trainingDifficulty">
+            <option value="1">★ 基礎</option>
+            <option value="2">★★ 標準</option>
+            <option value="3" selected>★★★ 模試</option>
+            <option value="4">★★★★ 入試標準</option>
+            <option value="5">★★★★★ 入試発展</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>問題数</span>
+          <select id="trainingCount">
+            <option value="5">5問</option>
+            <option value="10" selected>10問</option>
+            <option value="15">15問</option>
+            <option value="20">20問</option>
+          </select>
+        </label>
+
+        <button id="generateTraining" class="primary-button training-generate-button" type="button">
+          問題を生成
+        </button>
+
+        <div class="training-rule-note">
+          <strong>出題方針</strong>
+          <p id="trainingRuleText">難易度に応じて、文字・分数・複数段階の処理を組み合わせます。</p>
+        </div>
+      </aside>
+
+      <section class="training-results">
+        <div id="trainingEmpty" class="training-empty">
+          <div class="training-empty-icon">∑</div>
+          <h3>条件を選んで問題を生成してください</h3>
+          <p>問題と解答はすべてブラウザ上で自動生成されます。</p>
+        </div>
+
+        <div id="trainingSheet" hidden>
+          <div class="training-sheet-head">
+            <div>
+              <p class="results-label">PRACTICE SET</p>
+              <h2 id="trainingTitle">計算トレーニング</h2>
+              <p id="trainingMeta" class="training-meta"></p>
+            </div>
+            <div class="training-head-actions">
+              <button id="showAllAnswers" class="secondary-button" type="button">すべての答えを表示</button>
+              <button id="regenerateTraining" class="primary-button" type="button">別の問題を生成</button>
+            </div>
+          </div>
+
+          <div id="generatedProblems" class="generated-problems"></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
 
   <footer class="site-footer">
     <div class="container">
@@ -149,5 +267,6 @@
   </footer>
 
   <script src="./assets/app.js" defer></script>
+  <script src="./assets/training.js" defer></script>
 </body>
 </html>
