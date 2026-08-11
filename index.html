@@ -165,11 +165,11 @@
   <section id="trainingView" class="container training-view site-view" aria-label="計算トレーニング" hidden>
     <div class="training-intro">
       <div>
-        <p class="results-label">AUTO PRACTICE</p>
-        <h2>🧮 計算トレーニング</h2>
-        <p>分野・難易度・問題数を選ぶと、その場で新しい計算問題を自動生成します。</p>
+        <p class="results-label">PDF PRACTICE GENERATOR</p>
+        <h2>🧮 計算プリント自動作成</h2>
+        <p>条件を選ぶと、問題をサイト上には表示せず、A4の演習PDFを直接生成します。</p>
       </div>
-      <div class="training-free-badge">何度でも生成</div>
+      <div class="training-free-badge">PDF自動生成</div>
     </div>
 
     <div class="training-layout">
@@ -223,8 +223,17 @@
           </select>
         </label>
 
+        <label class="field">
+          <span>PDFの内容</span>
+          <select id="trainingPdfMode">
+            <option value="full" selected>問題＋解答・途中式</option>
+            <option value="problems">問題のみ</option>
+            <option value="solutions">解答・途中式のみ</option>
+          </select>
+        </label>
+
         <button id="generateTraining" class="primary-button training-generate-button" type="button">
-          問題を生成
+          📄 PDFを生成
         </button>
 
         <div class="training-rule-note">
@@ -233,32 +242,37 @@
         </div>
       </aside>
 
-      <section class="training-results">
-        <div id="trainingEmpty" class="training-empty">
-          <div class="training-empty-icon">∑</div>
-          <h3>条件を選んで問題を生成してください</h3>
-          <p>問題と解答はすべてブラウザ上で自動生成されます。</p>
+      <section class="training-results pdf-generator-guide">
+        <div class="pdf-guide-icon">PDF</div>
+        <h2>演習プリントを直接作成</h2>
+        <p>生成した問題はこのページには表示されません。ボタンを押すと、A4形式のPDFファイルとして保存されます。</p>
+
+        <div class="pdf-feature-grid">
+          <div>
+            <strong>問題編</strong>
+            <span>氏名欄・計算スペース付き</span>
+          </div>
+          <div>
+            <strong>解答編</strong>
+            <span>平方完成・微分・積分は途中式付き</span>
+          </div>
+          <div>
+            <strong>数式</strong>
+            <span>分数・根号・積分記号を教科書形式で表示</span>
+          </div>
+          <div>
+            <strong>平方完成</strong>
+            <span>問題・解答とも必ず y= を付けて表示</span>
+          </div>
         </div>
 
-        <div id="trainingSheet" hidden>
-          <div class="training-sheet-head">
-            <div>
-              <p class="results-label">PRACTICE SET</p>
-              <h2 id="trainingTitle">計算トレーニング</h2>
-              <p id="trainingMeta" class="training-meta"></p>
-            </div>
-            <div class="training-head-actions">
-              <button id="showAllAnswers" class="secondary-button" type="button">すべての答えを表示</button>
-              <button id="regenerateTraining" class="primary-button" type="button">別の問題を生成</button>
-            </div>
-          </div>
-
-          <div id="generatedProblems" class="generated-problems"></div>
+        <div id="pdfStatus" class="pdf-status" role="status" aria-live="polite">
+          <strong>準備完了</strong>
+          <span id="pdfStatusDetail">左の条件を選んで「PDFを生成」を押してください。</span>
         </div>
       </section>
     </div>
   </section>
-
 
   <footer class="site-footer">
     <div class="container">
@@ -267,6 +281,8 @@
   </footer>
 
   <script src="./assets/app.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
   <script src="./assets/training.js" defer></script>
 </body>
 </html>
