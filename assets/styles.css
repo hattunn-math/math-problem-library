@@ -880,3 +880,138 @@ textarea{resize:vertical}
   border:0 !important;
 }
 
+
+
+/* === A4 on-screen preview v4 === */
+.training-preview-section{
+  margin-top:24px;
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#f2f5f9;
+}
+
+.training-preview-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:14px;
+}
+
+.training-preview-head h2{
+  margin:2px 0 5px;
+}
+
+.training-preview-head p{
+  margin:0;
+  color:var(--muted);
+  font-size:.84rem;
+}
+
+.training-preview-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:9px;
+}
+
+.training-preview-actions .primary-button,
+.training-preview-actions .secondary-button{
+  white-space:nowrap;
+}
+
+.preview-help{
+  margin-bottom:14px;
+  padding:11px 13px;
+  border:1px solid #d7e2f2;
+  border-radius:10px;
+  background:#fff;
+  color:#536176;
+  font-size:.79rem;
+  line-height:1.65;
+}
+
+.training-preview-viewport{
+  width:100%;
+  overflow-x:hidden;
+  padding:18px 0 28px;
+  border-radius:14px;
+  background:#dce2ea;
+}
+
+.training-preview-pages{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:24px;
+}
+
+.preview-page-frame{
+  position:relative;
+  flex:0 0 auto;
+  overflow:visible;
+  transition:width .15s ease,height .15s ease;
+}
+
+.preview-page-frame > .pdf-page{
+  position:absolute;
+  left:0;
+  top:0;
+  margin:0;
+  box-shadow:0 7px 24px rgba(15,23,42,.18);
+  transition:transform .15s ease;
+}
+
+.secondary-button{
+  appearance:none;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--text);
+  padding:10px 14px;
+  font:inherit;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.secondary-button:hover{
+  background:#f5f7fa;
+}
+
+.secondary-button:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+
+@media (max-width:760px){
+  .training-preview-section{
+    padding:12px;
+  }
+
+  .training-preview-head{
+    flex-direction:column;
+  }
+
+  .training-preview-actions{
+    width:100%;
+    justify-content:stretch;
+  }
+
+  .training-preview-actions button{
+    flex:1 1 180px;
+  }
+
+  .training-preview-viewport{
+    padding-left:6px;
+    padding-right:6px;
+  }
+}
+
+/* Never show the scaled web preview in the printed PDF.
+   Printing continues to use the dedicated top-level #printRoot. */
+@media print{
+  #trainingPreviewSection{
+    display:none !important;
+  }
+}
