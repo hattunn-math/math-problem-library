@@ -233,7 +233,7 @@
         </label>
 
         <button id="generateTraining" class="primary-button training-generate-button" type="button">
-          📄 PDFを生成
+          📄 PDFを作成
         </button>
 
         <div class="training-rule-note">
@@ -245,7 +245,7 @@
       <section class="training-results pdf-generator-guide">
         <div class="pdf-guide-icon">PDF</div>
         <h2>演習プリントを直接作成</h2>
-        <p>生成した問題はこのページには表示されません。ボタンを押すと、A4形式のPDFファイルとして保存されます。</p>
+        <p>生成した問題はこのページには表示されません。ボタンを押すと印刷画面が開くので、「PDFとして保存」を選択してください。</p>
 
         <div class="pdf-feature-grid">
           <div>
@@ -268,11 +268,13 @@
 
         <div id="pdfStatus" class="pdf-status" role="status" aria-live="polite">
           <strong>準備完了</strong>
-          <span id="pdfStatusDetail">左の条件を選んで「PDFを生成」を押してください。</span>
+          <span id="pdfStatusDetail">左の条件を選んで「PDFを作成」を押してください。</span>
         </div>
       </section>
     </div>
   </section>
+
+  <div id="printRoot" aria-hidden="true"></div>
 
   <footer class="site-footer">
     <div class="container">
@@ -281,8 +283,6 @@
   </footer>
 
   <script src="./assets/app.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
   <script src="./assets/training.js" defer></script>
 </body>
 </html>
