@@ -111,3 +111,32 @@ textarea{resize:vertical}
   .problem-actions a{flex:1}
   .admin-row{grid-template-columns:1fr}
 }
+
+
+/* News */
+.news-section{padding-top:28px}
+.news-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 26px}
+.news-heading-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:13px;border-bottom:1px solid var(--line)}
+.news-heading-row h2{margin:0;font-size:1.28rem}
+.news-limit-label{font-size:.78rem;font-weight:800;color:var(--muted);background:var(--surface-2);padding:5px 10px;border-radius:999px}
+.news-list{display:grid}
+.news-item{display:grid;grid-template-columns:155px minmax(0,1fr);gap:18px;padding:15px 2px;border-bottom:1px solid #edf1f5}
+.news-item:last-child{border-bottom:0;padding-bottom:3px}
+.news-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;align-content:start}
+.news-meta time{font-weight:850;color:#36465e;font-size:.88rem}
+.new-badge{display:inline-flex;align-items:center;background:#e54d3d;color:white;font-size:.64rem;line-height:1;border-radius:999px;padding:5px 7px;font-weight:900;letter-spacing:.04em}
+.news-type{display:inline-flex;background:#edf4ff;color:#315b93;border-radius:999px;padding:4px 8px;font-size:.72rem;font-weight:800}
+.news-body h3{margin:0;font-size:.95rem}
+.news-body p{margin:4px 0 0;color:var(--muted);font-size:.84rem}
+.news-loading,.news-empty{margin:18px 2px 2px;color:var(--muted);font-size:.87rem}
+.section-divider{display:flex;align-items:center;gap:14px;margin:36px 0 22px;color:#53627a;font-weight:850;letter-spacing:.06em}
+.section-divider::before,.section-divider::after{content:"";height:1px;background:var(--line);flex:1}
+.workflow-copy{color:var(--muted);font-size:.88rem;margin:10px 0 0}
+.news-admin-row p{white-space:normal}
+
+@media (max-width:620px){
+  .news-section{padding-top:18px}
+  .news-panel{padding:17px;border-radius:15px}
+  .news-item{grid-template-columns:1fr;gap:6px;padding:13px 0}
+  .news-meta{gap:6px}
+}
