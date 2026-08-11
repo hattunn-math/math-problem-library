@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f172a">
   <title>数学問題ライブラリ</title>
   <meta name="description" content="単元・難易度・タグから数学の問題PDFを検索できる生徒向けページです。">
-  <link rel="stylesheet" href="./assets/styles.css?v=20260811-3">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260811-4">
   <script>
     window.MathJax = {
       tex: {
@@ -167,9 +167,9 @@
       <div>
         <p class="results-label">PDF PRACTICE GENERATOR</p>
         <h2>🧮 計算プリント自動作成</h2>
-        <p>条件を選ぶと、問題をサイト上には表示せず、A4の演習PDFを直接生成します。</p>
+        <p>条件を選ぶと、PDFと同じA4レイアウトをサイト内で確認してから保存できます。</p>
       </div>
-      <div class="training-free-badge">PDF自動生成</div>
+      <div class="training-free-badge">A4プレビュー</div>
     </div>
 
     <div class="training-layout">
@@ -233,7 +233,7 @@
         </label>
 
         <button id="generateTraining" class="primary-button training-generate-button" type="button">
-          📄 PDFを作成
+          👀 プレビューを作成
         </button>
 
         <div class="training-rule-note">
@@ -243,11 +243,15 @@
       </aside>
 
       <section class="training-results pdf-generator-guide">
-        <div class="pdf-guide-icon">PDF</div>
-        <h2>演習プリントを直接作成</h2>
-        <p>生成した問題はこのページには表示されません。ボタンを押すと印刷画面が開くので、「PDFとして保存」を選択してください。</p>
+        <div class="pdf-guide-icon">A4</div>
+        <h2>PDFになるプリントを先に確認</h2>
+        <p>「プレビューを作成」を押すと、このページの下にA4プリントがそのまま表示されます。内容を確認してからPDFとして保存できます。</p>
 
         <div class="pdf-feature-grid">
+          <div>
+            <strong>プレビュー</strong>
+            <span>PDFと同じ問題・ページ構成を表示</span>
+          </div>
           <div>
             <strong>問題編</strong>
             <span>氏名欄・計算スペース付き</span>
@@ -257,21 +261,43 @@
             <span>平方完成・微分・積分は途中式付き</span>
           </div>
           <div>
-            <strong>数式</strong>
-            <span>分数・根号・積分記号を教科書形式で表示</span>
-          </div>
-          <div>
-            <strong>平方完成</strong>
-            <span>問題・解答とも必ず y= を付けて表示</span>
+            <strong>PDF保存</strong>
+            <span>確認した問題をそのまま印刷・保存</span>
           </div>
         </div>
 
         <div id="pdfStatus" class="pdf-status" role="status" aria-live="polite">
-          <strong>準備完了（印刷PDF版 v3）</strong>
-          <span id="pdfStatusDetail">左の条件を選んで「PDFを作成」を押してください。</span>
+          <strong>準備完了（A4プレビュー版 v4）</strong>
+          <span id="pdfStatusDetail">左の条件を選んで「プレビューを作成」を押してください。</span>
         </div>
       </section>
     </div>
+
+    <section id="trainingPreviewSection" class="training-preview-section" hidden aria-label="計算プリントプレビュー">
+      <div class="training-preview-head">
+        <div>
+          <p class="results-label">PRINT PREVIEW</p>
+          <h2>📄 A4プリント プレビュー</h2>
+          <p id="previewSummary">生成したプリントを確認できます。</p>
+        </div>
+        <div class="training-preview-actions">
+          <button id="regenerateTraining" class="secondary-button" type="button">
+            🔄 別の問題を作成
+          </button>
+          <button id="printTraining" class="primary-button" type="button">
+            📄 PDFとして保存
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-help">
+        下の表示がそのままPDFになります。「PDFとして保存」を押した後、印刷画面の送信先で「PDFとして保存」を選択してください。
+      </div>
+
+      <div id="trainingPreviewViewport" class="training-preview-viewport">
+        <div id="trainingPreviewPages" class="training-preview-pages"></div>
+      </div>
+    </section>
   </section>
 
   <div id="printRoot" aria-hidden="true"></div>
@@ -283,6 +309,6 @@
   </footer>
 
   <script src="./assets/app.js" defer></script>
-  <script src="./assets/training-print-v3.js?v=20260811-3" defer></script>
+  <script src="./assets/training-preview-v4.js?v=20260811-4" defer></script>
 </body>
 </html>
