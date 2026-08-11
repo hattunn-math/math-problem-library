@@ -554,3 +554,232 @@ textarea{resize:vertical}
   .generated-number{width:29px;height:29px;font-size:.82rem}
   .generated-expression{font-size:1rem}
 }
+
+
+/* === PDF direct generator === */
+.pdf-generator-guide{
+  display:flex;
+  min-height:500px;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+}
+.pdf-guide-icon{
+  display:grid;
+  place-items:center;
+  width:64px;
+  height:64px;
+  margin-bottom:14px;
+  border-radius:18px;
+  background:#eef5ff;
+  color:#1459bf;
+  font-weight:950;
+  letter-spacing:.06em;
+}
+.pdf-generator-guide h2{
+  margin:0 0 8px;
+}
+.pdf-generator-guide>p{
+  max-width:690px;
+  margin:0;
+  color:var(--muted);
+  line-height:1.75;
+}
+.pdf-feature-grid{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:22px;
+}
+.pdf-feature-grid>div{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fafcff;
+}
+.pdf-feature-grid strong{font-size:.85rem}
+.pdf-feature-grid span{font-size:.76rem;color:var(--muted);line-height:1.5}
+.pdf-status{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  margin-top:20px;
+  padding:13px 15px;
+  border-radius:12px;
+  background:#f4f7fb;
+  border:1px solid var(--line);
+}
+.pdf-status strong{font-size:.85rem}
+.pdf-status span{font-size:.77rem;color:var(--muted)}
+.pdf-status.busy{
+  background:#fff9eb;
+  border-color:#f0d79a;
+}
+.pdf-status.error{
+  background:#fff3f3;
+  border-color:#efb1b1;
+}
+.training-generate-button:disabled{
+  opacity:.65;
+  cursor:wait;
+}
+
+/* Hidden A4 render surface used only while creating a PDF. */
+#pdfRenderRoot{
+  position:fixed;
+  left:-10000px;
+  top:0;
+  width:794px;
+  z-index:-9999;
+  background:#fff;
+}
+.pdf-page{
+  box-sizing:border-box;
+  width:794px;
+  height:1123px;
+  overflow:hidden;
+  padding:50px 54px 40px;
+  background:#fff;
+  color:#111827;
+  font-family:"Yu Gothic","YuGothic","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+  display:flex;
+  flex-direction:column;
+}
+.pdf-page-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:24px;
+  padding-bottom:14px;
+  border-bottom:2px solid #1f2937;
+}
+.pdf-eyebrow{
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  color:#657187;
+}
+.pdf-page-header h1{
+  margin:4px 0 5px;
+  font-size:24px;
+  line-height:1.25;
+  letter-spacing:.03em;
+}
+.pdf-meta{
+  font-size:12px;
+  color:#4b5563;
+}
+.pdf-kind{
+  flex:0 0 auto;
+  padding:6px 11px;
+  border:1.5px solid #1f2937;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:900;
+}
+.pdf-name-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:15px 0 2px;
+  font-size:12px;
+}
+.pdf-name-row>span:first-of-type{
+  display:inline-block;
+  width:220px;
+  border-bottom:1px solid #6b7280;
+}
+.pdf-date{margin-left:auto}
+.pdf-page-body{
+  flex:1;
+  min-height:0;
+}
+.pdf-problem-item{
+  display:grid;
+  grid-template-columns:34px 1fr;
+  gap:10px;
+  min-height:170px;
+  padding:15px 0;
+  border-bottom:1px solid #d6dbe3;
+}
+.pdf-problem-item.detailed{min-height:220px}
+.pdf-problem-number,
+.pdf-solution-number{
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#edf2f8;
+  font-size:12px;
+  font-weight:900;
+}
+.pdf-instruction{
+  font-size:12px;
+  font-weight:650;
+}
+.pdf-math{
+  min-height:48px;
+  font-size:16px;
+}
+.pdf-work-space{
+  display:grid;
+  gap:16px;
+  margin-top:6px;
+}
+.pdf-work-space span{
+  height:18px;
+  border-bottom:1px dotted #c8ced7;
+}
+.pdf-solution-item{
+  display:grid;
+  grid-template-columns:34px 1fr;
+  gap:10px;
+  padding:15px 0 18px;
+  border-bottom:1px solid #d6dbe3;
+}
+.pdf-solution-item.detailed{
+  min-height:400px;
+}
+.pdf-original{
+  padding:4px 0 8px;
+  font-size:15px;
+}
+.pdf-solution-label{
+  display:inline-block;
+  margin-bottom:2px;
+  padding:3px 8px;
+  border-radius:5px;
+  background:#eef7f1;
+  color:#16623c;
+  font-size:10px;
+  font-weight:900;
+}
+.pdf-solution-math{
+  font-size:15px;
+  line-height:1.7;
+}
+.pdf-page mjx-container{
+  margin:.55em 0 !important;
+}
+.pdf-solution-math mjx-container{
+  text-align:left !important;
+}
+.pdf-page-footer{
+  flex:0 0 auto;
+  padding-top:8px;
+  border-top:1px solid #e0e4ea;
+  color:#8892a2;
+  font-size:9px;
+  text-align:right;
+}
+
+@media (max-width:620px){
+  .pdf-feature-grid{grid-template-columns:1fr}
+  .pdf-generator-guide{min-height:400px}
+}

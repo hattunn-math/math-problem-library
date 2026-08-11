@@ -9,16 +9,12 @@
     category: $("#trainingCategory"),
     difficulty: $("#trainingDifficulty"),
     count: $("#trainingCount"),
+    pdfMode: $("#trainingPdfMode"),
     generate: $("#generateTraining"),
-    regenerate: $("#regenerateTraining"),
-    showAll: $("#showAllAnswers"),
     groupLabel: $("#categoryGroupLabel"),
     ruleText: $("#trainingRuleText"),
-    empty: $("#trainingEmpty"),
-    sheet: $("#trainingSheet"),
-    title: $("#trainingTitle"),
-    meta: $("#trainingMeta"),
-    list: $("#generatedProblems")
+    status: $("#pdfStatus"),
+    statusDetail: $("#pdfStatusDetail")
   };
 
   if (!els.trainingView) return;
@@ -239,14 +235,21 @@
 
   function withC(s){ return `${s}+C`; }
 
-  function question(instruction, expr, answer, signature){
-    return { instruction, expr, answer, signature: signature || `${instruction}|${expr}|${answer}` };
+  function question(instruction, expr, answer, signature, details={}){
+    return { instruction, expr, answer, details, signature: signature || `${instruction}|${expr}|${answer}` };
   }
 
-  function refreshMath(){
-    if (window.MathJax?.typesetPromise) {
-      window.MathJax.typesetPromise([els.list]).catch(()=>{});
-    }
+  function rhs(eq){
+    const i=String(eq).indexOf("=");
+    return i>=0 ? String(eq).slice(i+1) : String(eq);
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;");
   }
 
   // ---------- generators: 展開 ----------
@@ -447,16 +450,18 @@
       p=polyMul(a,b);
       expr=`\\left(${polyLatex(a)}\\right)\\left(${polyLatex(b)}\\right)`;
     }
+    const expanded=polyLatex(p);
+    const deriv=polyLatex(polyDerivative(p));
     return question("次の関数を微分せよ。", `y=${expr}`,
-      `y'=${polyLatex(polyDerivative(p))}`, `d2-${d}-${expr}`);
+      `y'=${deriv}`, `d2-${d}-${expr}`, {expanded, deriv});
   }
 
   // ---------- 不定積分 数学II ----------
   function genIndef2(d){
     let expr, p;
     if(d===1){
-      const anti=randomPoly(randInt(2,4),4,true);
-      p=polyDerivative(anti);
+      const antiSeed=randomPoly(randInt(2,4),4,true);
+      p=polyDerivative(antiSeed);
       expr=polyLatex(p);
     } else if(d===2){
       p=randomPoly(randInt(3,5),6,true);
@@ -474,9 +479,10 @@
       p=polyMul(a,b);
       expr=`\\left(${polyLatex(a)}\\right)\\left(${polyLatex(b)}\\right)`;
     }
-    const anti=polyIntegrate(p);
+    const expanded=polyLatex(p);
+    const anti=polyLatex(polyIntegrate(p));
     return question("次の不定積分を求めよ。", `\\int \\left(${expr}\\right)\\,dx`,
-      withC(polyLatex(anti)), `i2-${d}-${expr}`);
+      withC(anti), `i2-${d}-${expr}`, {expanded, anti});
   }
 
   // ---------- 定積分 数学II ----------
@@ -499,10 +505,13 @@
       expr=`\\left(${polyLatex(a)}\\right)\\left(${polyLatex(b)}\\right)`;
     }
     const lo=randInt(-2,0), hi=randInt(1,3);
-    const anti=polyIntegrate(p);
-    const value=polyEval(anti,hi).sub(polyEval(anti,lo));
+    const antiPoly=polyIntegrate(p);
+    const anti=polyLatex(antiPoly);
+    const value=polyEval(antiPoly,hi).sub(polyEval(antiPoly,lo));
+    const expanded=polyLatex(p);
     return question("次の定積分を求めよ。", `\\int_{${lo}}^{${hi}} \\left(${expr}\\right)\\,dx`,
-      ratLatex(value), `di2-${d}-${expr}-${lo}-${hi}`);
+      ratLatex(value), `di2-${d}-${expr}-${lo}-${hi}`,
+      {expanded, anti, lo, hi, value:ratLatex(value)});
   }
 
   // ---------- 微分 数学III ----------
@@ -710,16 +719,20 @@
     els.ruleText.textContent=RULES[key][d-1];
   }
 
-  function generateSet(){
-    const key=els.category.value;
-    const d=Number(els.difficulty.value);
-    const count=Number(els.count.value);
-    const gen=GENERATORS[key];
+  function setStatus(title, detail, busy=false, error=false){
+    els.status.classList.toggle("busy",busy);
+    els.status.classList.toggle("error",error);
+    const strong=els.status.querySelector("strong");
+    if(strong) strong.textContent=title;
+    els.statusDetail.textContent=detail;
+  }
 
+  function makeSet(key,d,count){
+    const gen=GENERATORS[key];
     const items=[];
     const signatures=new Set();
     let attempts=0;
-    while(items.length<count && attempts<count*40){
+    while(items.length<count && attempts<count*80){
       attempts++;
       const item=gen(d);
       if(!signatures.has(item.signature)){
@@ -727,38 +740,653 @@
         items.push(item);
       }
     }
+    // Some basic Math III template pools are intentionally finite.
+    while(items.length<count) items.push(gen(d));
+    return items;
+  }
 
-    // In very small finite template pools, allow repeats only if needed.
-    while(items.length<count){
-      items.push(gen(d));
+  function latexSignedInteger(n, tail=""){
+    if(n===0) return "";
+    if(n===1 && tail) return `+${tail}`;
+    if(n===-1 && tail) return `-${tail}`;
+    return n>0 ? `+${n}${tail}` : `${n}${tail}`;
+  }
+
+  function solutionCompleteSquare(item){
+    const sig=item.signature.split("-");
+    if(item.signature.startsWith("cs1-")){
+      const h=Number(sig[1]), k=Number(sig[2]);
+      const C=h*h+k;
+      const original=polyLatex([C,2*h,1]);
+      const kText=k===0?"":k>0?`+${k}`:`${k}`;
+      return `\\begin{aligned}
+y&=${original}\\\\
+&=\\left(x${h>0?"+":""}${h}\\right)^2-${h*h}+${C}\\\\
+&=\\left(x${h>0?"+":""}${h}\\right)^2${kText}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("cs2-") || item.signature.startsWith("cs4-")){
+      const A=Number(sig[1]), B=Number(sig[2]), C=Number(sig[3]);
+      const h=new Rat(B,2*A);
+      const q=new Rat(B,A);
+      const K=new Rat(4*A*C-B*B,4*A);
+      const qTerm=q.n>0?`+${ratLatex(q)}x`:`-${ratLatex(q.abs())}x`;
+      const inside=signedRatInside(h);
+      const h2=h.mul(h);
+      const kText=K.isZero()?"":K.n>0?`+${ratLatex(K)}`:`-${ratLatex(K.abs())}`;
+      return `\\begin{aligned}
+y&=${polyLatex([C,B,A])}\\\\
+&=${A}\\left(x^2${qTerm}\\right)${C===0?"":C>0?`+${C}`:`${C}`}\\\\
+&=${A}\\left\\{\\left(x${inside}\\right)^2-${ratLatex(h2)}\\right\\}${C===0?"":C>0?`+${C}`:`${C}`}\\\\
+&=${A}\\left(x${inside}\\right)^2${kText}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("cs3-")){
+      const k=Number(sig[1]), C=Number(sig[2]);
+      const cText=C===0?"":C>0?`+${C}`:`${C}`;
+      return `\\begin{aligned}
+y&=x^2+${2*k}ax${cText}\\\\
+&=x^2+${2*k}ax+${k*k}a^2-${k*k}a^2${cText}\\\\
+&=\\left(x+${k===1?"":k}a\\right)^2-${k*k}a^2${cText}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("cs5-")){
+      const A=Number(sig[1]), B=Number(sig[2]), C=Number(sig[3]), D=Number(sig[4]);
+      const q=new Rat(B,A), h=new Rat(B,2*A);
+      const K=new Rat(4*A*C-B*B,4*A);
+      const bText=latexSignedInteger(B,"ax");
+      const cText=latexSignedInteger(C,"a^2");
+      const dText=D===0?"":D>0?`+${D}`:`${D}`;
+      const qax=q.n>0?`+${ratLatex(q)}ax`:`-${ratLatex(q.abs())}ax`;
+      const inside=signedRatInside(h,"a");
+      const h2=h.mul(h);
+      const kA2=K.n>0?`+${ratLatex(K)}a^2`:`-${ratLatex(K.abs())}a^2`;
+      return `\\begin{aligned}
+y&=${A}x^2${bText}${cText}${dText}\\\\
+&=${A}\\left(x^2${qax}\\right)${cText}${dText}\\\\
+&=${A}\\left\\{\\left(x${inside}\\right)^2-${ratLatex(h2)}a^2\\right\\}${cText}${dText}\\\\
+&=${A}\\left(x${inside}\\right)^2${kA2}${dText}
+\\end{aligned}`;
+    }
+    return `y=${item.answer}`;
+  }
+
+  function solutionDiff2(item,d){
+    const expanded=item.details.expanded || rhs(item.expr);
+    const deriv=item.details.deriv || rhs(item.answer);
+    if(d<=2){
+      return `\\begin{aligned}
+y&=${expanded}\\\\
+y'&=${deriv}
+\\end{aligned}`;
+    }
+    return `\\begin{aligned}
+y&=${rhs(item.expr)}\\\\
+&=${expanded}\\\\
+y'&=${deriv}
+\\end{aligned}`;
+  }
+
+  function solutionIndef2(item,d){
+    const expanded=item.details.expanded || "";
+    const anti=item.details.anti || rhs(item.answer).replace(/\\+C$/,"");
+    if(d<=2){
+      return `\\begin{aligned}
+${item.expr}&=${anti}+C
+\\end{aligned}`;
+    }
+    return `\\begin{aligned}
+${item.expr}
+&=\\int\\left(${expanded}\\right)\\,dx\\\\
+&=${anti}+C
+\\end{aligned}`;
+  }
+
+  function solutionDef2(item,d){
+    const {expanded,anti,lo,hi,value}=item.details;
+    const first = d<=2 ? item.expr : `${item.expr}=\\int_{${lo}}^{${hi}}\\left(${expanded}\\right)\\,dx`;
+    return `\\begin{aligned}
+${first}\\\\
+&=\\left[${anti}\\right]_{${lo}}^{${hi}}\\\\
+&=${value}
+\\end{aligned}`;
+  }
+
+  function solutionDiff3(item){
+    const s=item.signature.split("-");
+    const final=rhs(item.answer);
+
+    if(item.signature.startsWith("d31-")){
+      const kind=s[1], c=Number(s[2]||1), ct=c===1?"":String(c);
+      if(kind==="sin") return `\\begin{aligned}y'&=${ct}(\\sin x)'\\\\&=${final}\\end{aligned}`;
+      if(kind==="cos") return `\\begin{aligned}y'&=${ct}(\\cos x)'\\\\&=${final}\\end{aligned}`;
+      if(kind==="exp") return `\\begin{aligned}y'&=${ct}(e^x)'\\\\&=${final}\\end{aligned}`;
+      if(kind==="log") return `\\begin{aligned}y'&=${ct}(\\log x)'\\\\&=${final}\\end{aligned}`;
+      if(kind==="sqrt") return `\\begin{aligned}y'&=${ct}(\\sqrt{x})'\\\\&=${final}\\end{aligned}`;
     }
 
-    els.empty.hidden=true;
-    els.sheet.hidden=false;
-    els.title.textContent=CATEGORY[key].name;
-    els.meta.textContent=`${CATEGORY[key].group} ／ ${DIFFICULTY[d]} ／ ${count}問`;
-    els.showAll.textContent="すべての答えを表示";
-    els.showAll.dataset.open="false";
+    if(item.signature.startsWith("d32-")){
+      const kind=s[1], k=Number(s[2]);
+      if(kind==="sin") return `\\begin{aligned}y'&=\\cos ${k}x\\cdot ${k}\\\\&=${final}\\end{aligned}`;
+      if(kind==="exp") return `\\begin{aligned}y'&=e^{${k}x+${s[3]}}\\cdot ${k}\\\\&=${final}\\end{aligned}`;
+      if(kind==="log") return `\\begin{aligned}y'&=\\frac{1}{${k}x+${s[3]}}\\cdot ${k}\\\\&=${final}\\end{aligned}`;
+      if(kind==="root") return `\\begin{aligned}y'&=\\frac{1}{2\\sqrt{${k}x+${s[3]}}}\\cdot ${k}\\\\&=${final}\\end{aligned}`;
+    }
 
-    els.list.innerHTML=items.map((item,i)=>`
-      <article class="generated-problem-card">
-        <div class="generated-number">${i+1}</div>
-        <div class="generated-body">
-          <p class="generated-instruction">${item.instruction}</p>
-          <div class="generated-expression">\\[${item.expr}\\]</div>
-          <button class="answer-toggle" type="button" data-answer-toggle="${i}" aria-expanded="false">
-            答えを見る
-          </button>
-          <div class="generated-answer" data-answer="${i}" hidden>
-            <span class="answer-label">答</span>
-            <div>\\[${item.answer}\\]</div>
-          </div>
+    if(item.signature.startsWith("d33-prod-exp-")){
+      const n=Number(s[3]);
+      return `\\begin{aligned}
+y'&=(x^{${n}})'e^x+x^{${n}}(e^x)'\\\\
+&=${n}x^{${n-1}}e^x+x^{${n}}e^x
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d33-prod-sin-")){
+      const n=Number(s[3]);
+      return `\\begin{aligned}
+y'&=(x^{${n}})'\\sin x+x^{${n}}(\\sin x)'\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d33-quot-")){
+      const n=Number(s[2]);
+      return `\\begin{aligned}
+y'&=\\frac{e^x x^{${n}}-e^x\\cdot ${n}x^{${n-1}}}{x^{${2*n}}}\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d33-comp-")){
+      const n=Number(s[2]), a=Number(s[3]);
+      return `\\begin{aligned}
+y'&=${n}\\left(x^2+${a}\\right)^{${n-1}}\\cdot 2x\\\\
+&=${final}
+\\end{aligned}`;
+    }
+
+    if(item.signature.startsWith("d34-es-")){
+      const k=Number(s[2]), m=Number(s[3]);
+      return `\\begin{aligned}
+y'&=(e^{${k}x})'\\sin ${m}x+e^{${k}x}(\\sin ${m}x)'\\\\
+&=${k}e^{${k}x}\\sin ${m}x+${m}e^{${k}x}\\cos ${m}x\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d34-sinpow-")){
+      const n=Number(s[2]);
+      return `\\begin{aligned}
+y'&=${n}(\\sin x)^{${n-1}}(\\sin x)'\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d34-q-")){
+      const a=Number(s[2]);
+      return `\\begin{aligned}
+y'&=\\frac{(\\sin x)'(x^2+${a})-\\sin x\\,(x^2+${a})'}{(x^2+${a})^2}\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d34-pec-")){
+      const a=Number(s[2]), k=Number(s[3]);
+      return `\\begin{aligned}
+y'&=2xe^{${k}x}+(x^2+${a})\\cdot ${k}e^{${k}x}\\\\
+&=${final}
+\\end{aligned}`;
+    }
+
+    if(item.signature==="d35-logdiff"){
+      return `\\begin{aligned}
+y&=x^x\\\\
+\\log y&=x\\log x\\\\
+\\frac{y'}{y}&=\\log x+1\\\\
+y'&=x^x(\\log x+1)
+\\end{aligned}`;
+    }
+    if(item.signature==="d35-esx2"){
+      return `\\begin{aligned}
+y'&=(e^{x^2})'\\sin x+e^{x^2}(\\sin x)'\\\\
+&=2xe^{x^2}\\sin x+e^{x^2}\\cos x\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d35-q-")){
+      const k=Number(s[2]);
+      return `\\begin{aligned}
+y&=e^{-x}\\sin ${k}x\\\\
+y'&=-e^{-x}\\sin ${k}x+${k}e^{-x}\\cos ${k}x\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("d35-pc-")){
+      const a=Number(s[2]), n=Number(s[3]), k=Number(s[4]);
+      return `\\begin{aligned}
+y'&=\\left\\{${n}(x^2+${a})^{${n-1}}\\cdot 2x\\right\\}e^{${k}x}\\\\
+&\\quad +(x^2+${a})^{${n}}\\cdot ${k}e^{${k}x}\\\\
+&=${final}
+\\end{aligned}`;
+    }
+    return `y'=${final}`;
+  }
+
+  function solutionIndef3(item){
+    const s=item.signature.split("-");
+    const ans=item.answer;
+
+    if(item.signature.startsWith("i31-"))
+      return `\\begin{aligned}${item.expr}&=${ans}\\end{aligned}`;
+
+    if(item.signature.startsWith("i32-")){
+      const kind=s[1], k=Number(s[2]);
+      if(kind==="exp") return `\\begin{aligned}${item.expr}&=\\frac{1}{${k}}e^{${k}x+${s[3]}}+C\\end{aligned}`;
+      if(kind==="cos") return `\\begin{aligned}${item.expr}&=\\frac{1}{${k}}\\sin ${k}x+C\\end{aligned}`;
+      if(kind==="sin") return `\\begin{aligned}${item.expr}&=-\\frac{1}{${k}}\\cos ${k}x+C\\end{aligned}`;
+      if(kind==="log") return `\\begin{aligned}${item.expr}&=\\frac{1}{${k}}\\log\\left|${k}x+${s[3]}\\right|+C\\end{aligned}`;
+    }
+
+    if(item.signature.startsWith("i33-sub-")){
+      const a=Number(s[2]), n=Number(s[3]);
+      return `\\begin{aligned}
+t&=x^2+${a},\\quad dt=2x\\,dx\\\\
+${item.expr}&=\\int t^{${n}}\\,dt\\\\
+&=\\frac{1}{${n+1}}t^{${n+1}}+C\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature==="i33-parts-exp"){
+      return `\\begin{aligned}
+u&=x,\\quad dv=e^x\\,dx\\\\
+du&=dx,\\quad v=e^x\\\\
+\\int xe^x\\,dx&=xe^x-\\int e^x\\,dx\\\\
+&=(x-1)e^x+C
+\\end{aligned}`;
+    }
+    if(item.signature==="i33-parts-cos"){
+      return `\\begin{aligned}
+u&=x,\\quad dv=\\cos x\\,dx\\\\
+du&=dx,\\quad v=\\sin x\\\\
+\\int x\\cos x\\,dx&=x\\sin x-\\int\\sin x\\,dx\\\\
+&=x\\sin x+\\cos x+C
+\\end{aligned}`;
+    }
+    if(item.signature==="i33-parts-sin"){
+      return `\\begin{aligned}
+u&=x,\\quad dv=\\sin x\\,dx\\\\
+du&=dx,\\quad v=-\\cos x\\\\
+\\int x\\sin x\\,dx&=-x\\cos x+\\int\\cos x\\,dx\\\\
+&=-x\\cos x+\\sin x+C
+\\end{aligned}`;
+    }
+
+    if(item.signature.startsWith("i34-subexp-")){
+      const a=Number(s[2]);
+      return `\\begin{aligned}
+t&=x^2+${a},\\quad dt=2x\\,dx\\\\
+\\int xe^{x^2+${a}}\\,dx&=\\frac12\\int e^t\\,dt\\\\
+&=\\frac12e^t+C\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("i34-log-")){
+      const a=Number(s[2]);
+      return `\\begin{aligned}
+t&=x^2+${a},\\quad dt=2x\\,dx\\\\
+\\int\\frac{x}{x^2+${a}}\\,dx&=\\frac12\\int\\frac1t\\,dt\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature==="i34-sin2"){
+      return `\\begin{aligned}
+\\sin^2x&=\\frac{1-\\cos2x}{2}\\\\
+\\int\\sin^2x\\,dx&=\\frac12\\int(1-\\cos2x)\\,dx\\\\
+&=\\frac{x}{2}-\\frac{\\sin2x}{4}+C
+\\end{aligned}`;
+    }
+    if(item.signature==="i34-cos2"){
+      return `\\begin{aligned}
+\\cos^2x&=\\frac{1+\\cos2x}{2}\\\\
+\\int\\cos^2x\\,dx&=\\frac12\\int(1+\\cos2x)\\,dx\\\\
+&=\\frac{x}{2}+\\frac{\\sin2x}{4}+C
+\\end{aligned}`;
+    }
+    if(item.signature==="i34-logx"){
+      return `\\begin{aligned}
+u&=\\log x,\\quad dv=dx\\\\
+du&=\\frac1x dx,\\quad v=x\\\\
+\\int\\log x\\,dx&=x\\log x-\\int1\\,dx\\\\
+&=x\\log x-x+C
+\\end{aligned}`;
+    }
+
+    if(item.signature.startsWith("i35-x2exp-")){
+      const c=Number(s[2]);
+      const ct=c===1?"":String(c);
+      return `\\begin{aligned}
+\\int ${ct}x^2e^x\\,dx
+&=${ct}x^2e^x-2${ct}\\int xe^x\\,dx\\\\
+&=${ct}x^2e^x-2${ct}\\left(xe^x-e^x\\right)+C\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("i35-expsin-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+I&=\\int ${ct}e^x\\sin x\\,dx\\\\
+&=${ct}e^x\\sin x-\\int ${ct}e^x\\cos x\\,dx\\\\
+&=${ct}e^x\\sin x-${ct}e^x\\cos x-I\\\\
+2I&=${ct}e^x(\\sin x-\\cos x)\\\\
+I&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("i35-expcos-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+I&=\\int ${ct}e^x\\cos x\\,dx\\\\
+&=${ct}e^x\\cos x+\\int ${ct}e^x\\sin x\\,dx\\\\
+&=${ct}e^x\\cos x+${ct}e^x\\sin x-I\\\\
+I&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("i35-x2cos-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+\\int ${ct}x^2\\cos x\\,dx
+&=${ct}x^2\\sin x-2${ct}\\int x\\sin x\\,dx\\\\
+&=${ct}x^2\\sin x+2${ct}x\\cos x-2${ct}\\sin x+C
+\\end{aligned}`;
+    }
+    return `\\begin{aligned}${item.expr}&=${ans}\\end{aligned}`;
+  }
+
+  function solutionDef3(item){
+    const s=item.signature.split("-");
+    const ans=item.answer;
+
+    if(item.signature==="di31-exp")
+      return `\\begin{aligned}\\int_0^1e^x\\,dx&=[e^x]_0^1\\\\&=e-1\\end{aligned}`;
+    if(item.signature==="di31-cos")
+      return `\\begin{aligned}\\int_0^{\\frac\\pi2}\\cos x\\,dx&=[\\sin x]_0^{\\frac\\pi2}\\\\&=1\\end{aligned}`;
+    if(item.signature==="di31-log")
+      return `\\begin{aligned}\\int_1^e\\frac1x\\,dx&=[\\log x]_1^e\\\\&=1\\end{aligned}`;
+
+    if(item.signature.startsWith("di32-exp-")){
+      const k=Number(s[2]);
+      return `\\begin{aligned}${item.expr}&=\\left[\\frac1${k}e^{${k}x}\\right]_0^1\\\\&=${ans}\\end{aligned}`;
+    }
+    if(item.signature.startsWith("di32-cos-")){
+      const k=Number(s[2]);
+      return `\\begin{aligned}${item.expr}&=\\left[\\frac1${k}\\sin ${k}x\\right]_0^{\\frac{\\pi}{${2*k}}}\\\\&=${ans}\\end{aligned}`;
+    }
+    if(item.signature.startsWith("di32-log-")){
+      const k=Number(s[2]);
+      return `\\begin{aligned}${item.expr}&=\\left[\\frac1${k}\\log(${k}x+1)\\right]_0^1\\\\&=${ans}\\end{aligned}`;
+    }
+
+    if(item.signature.startsWith("di33-sub-")){
+      const a=Number(s[2]), n=Number(s[3]);
+      return `\\begin{aligned}
+t&=x^2+${a},\\quad dt=2x\\,dx\\\\
+x=0&\\Rightarrow t=${a},\\quad x=1\\Rightarrow t=${a+1}\\\\
+${item.expr}&=\\int_${a}^{${a+1}}t^{${n}}\\,dt\\\\
+&=\\left[\\frac{t^{${n+1}}}{${n+1}}\\right]_${a}^{${a+1}}\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature==="di33-parts"){
+      return `\\begin{aligned}
+\\int_0^1xe^x\\,dx&=[xe^x]_0^1-\\int_0^1e^x\\,dx\\\\
+&=e-(e-1)\\\\
+&=1
+\\end{aligned}`;
+    }
+    if(item.signature==="di33-xcos"){
+      return `\\begin{aligned}
+\\int_0^{\\frac\\pi2}x\\cos x\\,dx
+&=[x\\sin x]_0^{\\frac\\pi2}-\\int_0^{\\frac\\pi2}\\sin x\\,dx\\\\
+&=\\frac\\pi2-1
+\\end{aligned}`;
+    }
+
+    if(item.signature==="di34-xexp"){
+      return `\\begin{aligned}
+t&=x^2,\\quad dt=2x\\,dx\\\\
+\\int_0^1xe^{x^2}\\,dx&=\\frac12\\int_0^1e^t\\,dt\\\\
+&=\\frac12[e^t]_0^1\\\\
+&=\\frac{e-1}{2}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("di34-log-")){
+      const a=Number(s[2]);
+      return `\\begin{aligned}
+t&=x^2+${a},\\quad dt=2x\\,dx\\\\
+${item.expr}&=\\frac12\\int_${a}^{${a+1}}\\frac1t\\,dt\\\\
+&=\\frac12[\\log t]_${a}^{${a+1}}\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature==="di34-sin2"){
+      return `\\begin{aligned}
+\\sin^2x&=\\frac{1-\\cos2x}{2}\\\\
+\\int_0^{\\frac\\pi2}\\sin^2x\\,dx
+&=\\left[\\frac{x}{2}-\\frac{\\sin2x}{4}\\right]_0^{\\frac\\pi2}\\\\
+&=\\frac\\pi4
+\\end{aligned}`;
+    }
+    if(item.signature==="di34-logx"){
+      return `\\begin{aligned}
+\\int_1^e\\log x\\,dx
+&=[x\\log x-x]_1^e\\\\
+&=1
+\\end{aligned}`;
+    }
+
+    if(item.signature.startsWith("di35-x2exp-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+\\int_0^1${ct}x^2e^x\\,dx
+&=\\left[${ct}e^x(x^2-2x+2)\\right]_0^1\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("di35-expsin-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+\\int ${ct}e^x\\sin x\\,dx
+&=\\frac{${c}e^x}{2}(\\sin x-\\cos x)\\\\
+${item.expr}
+&=\\left[\\frac{${c}e^x}{2}(\\sin x-\\cos x)\\right]_0^{\\frac\\pi2}\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("di35-expcos-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+\\int ${ct}e^x\\cos x\\,dx
+&=\\frac{${c}e^x}{2}(\\sin x+\\cos x)\\\\
+${item.expr}
+&=\\left[\\frac{${c}e^x}{2}(\\sin x+\\cos x)\\right]_0^{\\frac\\pi2}\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    if(item.signature.startsWith("di35-x2cos-")){
+      const c=Number(s[2]), ct=c===1?"":String(c);
+      return `\\begin{aligned}
+\\int ${ct}x^2\\cos x\\,dx
+&=${ct}(x^2\\sin x+2x\\cos x-2\\sin x)\\\\
+${item.expr}
+&=\\left[${ct}(x^2\\sin x+2x\\cos x-2\\sin x)\\right]_0^{\\frac\\pi2}\\\\
+&=${ans}
+\\end{aligned}`;
+    }
+    return `\\begin{aligned}${item.expr}&=${ans}\\end{aligned}`;
+  }
+
+  function solutionLatex(item,key,d){
+    if(key==="expand" || key==="factor")
+      return `\\begin{aligned}${item.expr}&=${item.answer}\\end{aligned}`;
+    if(key==="completeSquare") return solutionCompleteSquare(item);
+    if(key==="diff2") return solutionDiff2(item,d);
+    if(key==="indef2") return solutionIndef2(item,d);
+    if(key==="def2") return solutionDef2(item,d);
+    if(key==="diff3") return solutionDiff3(item);
+    if(key==="indef3") return solutionIndef3(item);
+    if(key==="def3") return solutionDef3(item);
+    return item.answer;
+  }
+
+  function problemExpression(item,key){
+    if(key==="completeSquare") return `y=${item.expr}`;
+    return item.expr;
+  }
+
+  function chunk(arr,size){
+    const out=[];
+    for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
+    return out;
+  }
+
+  function pageShell(kind,title,meta,inner){
+    return `<section class="pdf-page">
+      <div class="pdf-page-header">
+        <div>
+          <div class="pdf-eyebrow">CALCULATION TRAINING</div>
+          <h1>${escapeHtml(title)}</h1>
+          <div class="pdf-meta">${escapeHtml(meta)}</div>
         </div>
-      </article>
-    `).join("");
+        <div class="pdf-kind">${escapeHtml(kind)}</div>
+      </div>
+      ${kind==="問題" ? `<div class="pdf-name-row">氏名：<span></span><span class="pdf-date">実施日：　　　月　　　日</span></div>` : ""}
+      <div class="pdf-page-body">${inner}</div>
+      <div class="pdf-page-footer">数学問題ライブラリ・計算トレーニング</div>
+    </section>`;
+  }
 
-    refreshMath();
-    els.sheet.scrollIntoView({behavior:"smooth",block:"start"});
+  function makeProblemPages(items,key,title,meta){
+    const detailed=!["expand","factor"].includes(key);
+    const perPage=detailed?4:5;
+    return chunk(items,perPage).map(group=>{
+      const body=group.map((item,idx)=>{
+        const globalIndex=items.indexOf(item)+1;
+        return `<article class="pdf-problem-item ${detailed?"detailed":""}">
+          <div class="pdf-problem-number">${globalIndex}</div>
+          <div class="pdf-problem-main">
+            <div class="pdf-instruction">${escapeHtml(item.instruction)}</div>
+            <div class="pdf-math">\\[${problemExpression(item,key)}\\]</div>
+            <div class="pdf-work-space">${"<span></span>".repeat(detailed?3:2)}</div>
+          </div>
+        </article>`;
+      }).join("");
+      return pageShell("問題",title,meta,body);
+    });
+  }
+
+  function makeSolutionPages(items,key,d,title,meta){
+    const detailed=!["expand","factor"].includes(key);
+    const perPage=detailed?2:4;
+    return chunk(items,perPage).map(group=>{
+      const body=group.map(item=>{
+        const globalIndex=items.indexOf(item)+1;
+        return `<article class="pdf-solution-item ${detailed?"detailed":""}">
+          <div class="pdf-solution-number">${globalIndex}</div>
+          <div class="pdf-solution-main">
+            <div class="pdf-original">\\[${problemExpression(item,key)}\\]</div>
+            <div class="pdf-solution-label">解答${detailed?"・途中式":""}</div>
+            <div class="pdf-solution-math">\\[${solutionLatex(item,key,d)}\\]</div>
+          </div>
+        </article>`;
+      }).join("");
+      return pageShell("解答",`${title}　解答・途中式`,meta,body);
+    });
+  }
+
+  async function waitForLibs(){
+    const started=Date.now();
+    while(Date.now()-started<12000){
+      if(window.html2canvas && window.jspdf?.jsPDF && window.MathJax?.typesetPromise) return;
+      await new Promise(r=>setTimeout(r,100));
+    }
+    throw new Error("PDF生成ライブラリを読み込めませんでした。通信環境を確認してください。");
+  }
+
+  async function renderPdf(items,key,d,mode){
+    await waitForLibs();
+
+    const title=CATEGORY[key].name;
+    const meta=`${CATEGORY[key].group} ／ ${DIFFICULTY[d]} ／ ${items.length}問`;
+    let pageHtml=[];
+    if(mode==="full" || mode==="problems")
+      pageHtml.push(...makeProblemPages(items,key,title,meta));
+    if(mode==="full" || mode==="solutions")
+      pageHtml.push(...makeSolutionPages(items,key,d,title,meta));
+
+    const root=document.createElement("div");
+    root.id="pdfRenderRoot";
+    root.innerHTML=pageHtml.join("");
+    document.body.appendChild(root);
+
+    try{
+      setStatus("PDF作成中",`数式を組版しています…（全${pageHtml.length}ページ）`,true,false);
+      await window.MathJax.typesetPromise([root]);
+      if(document.fonts?.ready) await document.fonts.ready;
+      await new Promise(r=>setTimeout(r,120));
+
+      const pages=[...root.querySelectorAll(".pdf-page")];
+      pages.forEach((p,i)=>{
+        const f=p.querySelector(".pdf-page-footer");
+        if(f) f.textContent=`数学問題ライブラリ・計算トレーニング　　${i+1} / ${pages.length}`;
+      });
+
+      const { jsPDF }=window.jspdf;
+      const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
+
+      for(let i=0;i<pages.length;i++){
+        setStatus("PDF作成中",`${i+1} / ${pages.length} ページを作成しています…`,true,false);
+        const canvas=await window.html2canvas(pages[i],{
+          scale:2,
+          backgroundColor:"#ffffff",
+          useCORS:true,
+          logging:false,
+          width:794,
+          height:1123,
+          windowWidth:794,
+          windowHeight:1123
+        });
+        const img=canvas.toDataURL("image/jpeg",0.96);
+        if(i>0) pdf.addPage("a4","portrait");
+        pdf.addImage(img,"JPEG",0,0,210,297,undefined,"FAST");
+        canvas.width=1; canvas.height=1;
+        await new Promise(r=>setTimeout(r,10));
+      }
+
+      const modeLabel=mode==="problems"?"問題":mode==="solutions"?"解答":"問題解答";
+      const safeTitle=title.replace(/[（）]/g,"");
+      const filename=`計算トレーニング_${safeTitle}_${DIFFICULTY[d].replaceAll(" ","")}_${items.length}問_${modeLabel}.pdf`;
+      pdf.save(filename);
+      setStatus("PDFを生成しました",`${filename} を保存しました。`,false,false);
+    } finally {
+      root.remove();
+    }
+  }
+
+  async function generatePdf(){
+    if(els.generate.disabled) return;
+    const key=els.category.value;
+    const d=Number(els.difficulty.value);
+    const count=Number(els.count.value);
+    const mode=els.pdfMode.value;
+
+    els.generate.disabled=true;
+    const original=els.generate.textContent;
+    els.generate.textContent="PDF作成中…";
+    setStatus("問題を作成中",`${CATEGORY[key].name}の問題を${count}問生成しています…`,true,false);
+
+    try{
+      const items=makeSet(key,d,count);
+      await renderPdf(items,key,d,mode);
+    }catch(err){
+      console.error(err);
+      setStatus("PDFを生成できませんでした",err?.message || "時間をおいてもう一度お試しください。",false,true);
+    }finally{
+      els.generate.disabled=false;
+      els.generate.textContent=original;
+    }
   }
 
   function setView(view){
@@ -769,42 +1397,15 @@
     els.showTraining.classList.toggle("active",training);
     els.showLibrary.setAttribute("aria-pressed",String(!training));
     els.showTraining.setAttribute("aria-pressed",String(training));
-    if(training) {
-      window.scrollTo({top:0,behavior:"smooth"});
-      setTimeout(()=>window.MathJax?.typesetPromise?.([els.trainingView]),50);
-    }
+    if(training) window.scrollTo({top:0,behavior:"smooth"});
   }
 
   els.showLibrary.addEventListener("click",()=>setView("library"));
   els.showTraining.addEventListener("click",()=>setView("training"));
   els.category.addEventListener("change",updateCategoryHelp);
   els.difficulty.addEventListener("change",updateCategoryHelp);
-  els.generate.addEventListener("click",generateSet);
-  els.regenerate.addEventListener("click",generateSet);
-
-  els.list.addEventListener("click",(e)=>{
-    const btn=e.target.closest("[data-answer-toggle]");
-    if(!btn) return;
-    const id=btn.dataset.answerToggle;
-    const answer=els.list.querySelector(`[data-answer="${id}"]`);
-    const opening=answer.hidden;
-    answer.hidden=!opening;
-    btn.textContent=opening?"答えを隠す":"答えを見る";
-    btn.setAttribute("aria-expanded",String(opening));
-    if(opening) window.MathJax?.typesetPromise?.([answer]);
-  });
-
-  els.showAll.addEventListener("click",()=>{
-    const opening=els.showAll.dataset.open!=="true";
-    els.showAll.dataset.open=String(opening);
-    els.showAll.textContent=opening?"すべての答えを隠す":"すべての答えを表示";
-    els.list.querySelectorAll("[data-answer]").forEach(x=>x.hidden=!opening);
-    els.list.querySelectorAll("[data-answer-toggle]").forEach(x=>{
-      x.textContent=opening?"答えを隠す":"答えを見る";
-      x.setAttribute("aria-expanded",String(opening));
-    });
-    if(opening) window.MathJax?.typesetPromise?.([els.list]);
-  });
+  els.generate.addEventListener("click",generatePdf);
 
   updateCategoryHelp();
+
 })();
