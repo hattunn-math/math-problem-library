@@ -703,7 +703,7 @@ textarea{resize:vertical}
 }
 .pdf-problem-item{
   display:grid;
-  grid-template-columns:34px 1fr;
+  grid-template-columns:42px 1fr;
   gap:10px;
   min-height:170px;
   padding:15px 0;
@@ -712,35 +712,32 @@ textarea{resize:vertical}
 .pdf-problem-item.detailed{min-height:220px}
 .pdf-problem-number,
 .pdf-solution-number{
-  width:28px;
-  height:28px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  background:#edf2f8;
+  width:42px;
+  height:auto;
+  display:block;
+  padding-top:2px;
+  background:none;
+  border-radius:0;
   font-size:12px;
-  font-weight:900;
+  font-weight:700;
+  text-align:left;
 }
 .pdf-instruction{
   font-size:12px;
   font-weight:650;
 }
 .pdf-math{
-  min-height:48px;
-  font-size:16px;
+  min-height:42px;
+  font-size:13px;
+  text-align:left;
 }
 .pdf-work-space{
-  display:grid;
-  gap:16px;
-  margin-top:6px;
-}
-.pdf-work-space span{
-  height:18px;
-  border-bottom:1px dotted #c8ced7;
+  min-height:58px;
+  margin-top:4px;
 }
 .pdf-solution-item{
   display:grid;
-  grid-template-columns:34px 1fr;
+  grid-template-columns:42px 1fr;
   gap:10px;
   padding:15px 0 18px;
   border-bottom:1px solid #d6dbe3;
@@ -750,7 +747,8 @@ textarea{resize:vertical}
 }
 .pdf-original{
   padding:4px 0 8px;
-  font-size:15px;
+  font-size:13px;
+  text-align:left;
 }
 .pdf-solution-label{
   display:inline-block;
@@ -763,8 +761,9 @@ textarea{resize:vertical}
   font-weight:900;
 }
 .pdf-solution-math{
-  font-size:15px;
-  line-height:1.7;
+  font-size:13px;
+  line-height:1.65;
+  text-align:left;
 }
 .pdf-page mjx-container{
   margin:.55em 0 !important;
@@ -847,3 +846,37 @@ textarea{resize:vertical}
     page-break-inside:avoid !important;
   }
 }
+
+
+/* === PDF layout refinements v3 === */
+.pdf-set-instruction{
+  margin:16px 0 4px;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.6;
+}
+
+.pdf-problem-main,
+.pdf-solution-main{
+  min-width:0;
+}
+
+.pdf-page .pdf-math mjx-container[display="true"],
+.pdf-page .pdf-original mjx-container[display="true"],
+.pdf-page .pdf-solution-math mjx-container[display="true"]{
+  text-align:left !important;
+  margin:.35em 0 !important;
+}
+
+.pdf-problem-item{
+  border-bottom:1px solid #d6dbe3;
+}
+
+.pdf-problem-item.detailed{
+  min-height:190px;
+}
+
+.pdf-work-space{
+  border:0 !important;
+}
+
