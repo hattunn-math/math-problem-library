@@ -630,13 +630,8 @@ textarea{resize:vertical}
 }
 
 /* Hidden A4 render surface used only while creating a PDF. */
-#pdfRenderRoot{
-  position:fixed;
-  left:-10000px;
-  top:0;
-  width:794px;
-  z-index:-9999;
-  background:#fff;
+#printRoot{
+  display:none;
 }
 .pdf-page{
   box-sizing:border-box;
@@ -782,4 +777,60 @@ textarea{resize:vertical}
 @media (max-width:620px){
   .pdf-feature-grid{grid-template-columns:1fr}
   .pdf-generator-guide{min-height:400px}
+}
+
+
+/* === Native browser PDF / print mode === */
+@page{
+  size:A4 portrait;
+  margin:0;
+}
+
+@media print{
+  html,body{
+    width:210mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    background:#fff !important;
+  }
+
+  body > *:not(#printRoot){
+    display:none !important;
+  }
+
+  #printRoot{
+    display:block !important;
+    width:210mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    background:#fff !important;
+  }
+
+  #printRoot .pdf-page{
+    width:210mm !important;
+    height:297mm !important;
+    min-height:297mm !important;
+    box-sizing:border-box !important;
+    page-break-after:always !important;
+    break-after:page !important;
+    box-shadow:none !important;
+    margin:0 !important;
+  }
+
+  #printRoot .pdf-page:last-child{
+    page-break-after:auto !important;
+    break-after:auto !important;
+  }
+
+  #printRoot mjx-container,
+  #printRoot svg{
+    break-inside:avoid !important;
+    page-break-inside:avoid !important;
+  }
+
+  #printRoot .pdf-problem-item,
+  #printRoot .pdf-solution-item{
+    break-inside:avoid !important;
+    page-break-inside:avoid !important;
+  }
 }

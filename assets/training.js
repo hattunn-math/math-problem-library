@@ -14,7 +14,8 @@
     groupLabel: $("#categoryGroupLabel"),
     ruleText: $("#trainingRuleText"),
     status: $("#pdfStatus"),
-    statusDetail: $("#pdfStatusDetail")
+    statusDetail: $("#pdfStatusDetail"),
+    printRoot: $("#printRoot")
   };
 
   if (!els.trainingView) return;
@@ -1296,17 +1297,17 @@ ${item.expr}
     });
   }
 
-  async function waitForLibs(){
+  async function waitForMathJax(){
     const started=Date.now();
     while(Date.now()-started<12000){
-      if(window.html2canvas && window.jspdf?.jsPDF && window.MathJax?.typesetPromise) return;
+      if(window.MathJax?.typesetPromise) return;
       await new Promise(r=>setTimeout(r,100));
     }
-    throw new Error("PDF生成ライブラリを読み込めませんでした。通信環境を確認してください。");
+    throw new Error("数式表示の準備が完了しませんでした。ページを再読み込みして、もう一度お試しください。");
   }
 
-  async function renderPdf(items,key,d,mode){
-    await waitForLibs();
+  async function openPrintPdf(items,key,d,mode){
+    await waitForMathJax();
 
     const title=CATEGORY[key].name;
     const meta=`${CATEGORY[key].group} ／ ${DIFFICULTY[d]} ／ ${items.length}問`;
@@ -1316,53 +1317,45 @@ ${item.expr}
     if(mode==="full" || mode==="solutions")
       pageHtml.push(...makeSolutionPages(items,key,d,title,meta));
 
-    const root=document.createElement("div");
-    root.id="pdfRenderRoot";
-    root.innerHTML=pageHtml.join("");
-    document.body.appendChild(root);
+    els.printRoot.innerHTML=pageHtml.join("");
+    els.printRoot.setAttribute("aria-hidden","false");
 
-    try{
-      setStatus("PDF作成中",`数式を組版しています…（全${pageHtml.length}ページ）`,true,false);
-      await window.MathJax.typesetPromise([root]);
-      if(document.fonts?.ready) await document.fonts.ready;
-      await new Promise(r=>setTimeout(r,120));
+    const pages=[...els.printRoot.querySelectorAll(".pdf-page")];
+    pages.forEach((p,i)=>{
+      const f=p.querySelector(".pdf-page-footer");
+      if(f) f.textContent=`数学問題ライブラリ・計算トレーニング　　${i+1} / ${pages.length}`;
+    });
 
-      const pages=[...root.querySelectorAll(".pdf-page")];
-      pages.forEach((p,i)=>{
-        const f=p.querySelector(".pdf-page-footer");
-        if(f) f.textContent=`数学問題ライブラリ・計算トレーニング　　${i+1} / ${pages.length}`;
-      });
+    setStatus("PDF準備中",`数式を組版しています…（全${pages.length}ページ）`,true,false);
 
-      const { jsPDF }=window.jspdf;
-      const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
-
-      for(let i=0;i<pages.length;i++){
-        setStatus("PDF作成中",`${i+1} / ${pages.length} ページを作成しています…`,true,false);
-        const canvas=await window.html2canvas(pages[i],{
-          scale:2,
-          backgroundColor:"#ffffff",
-          useCORS:true,
-          logging:false,
-          width:794,
-          height:1123,
-          windowWidth:794,
-          windowHeight:1123
-        });
-        const img=canvas.toDataURL("image/jpeg",0.96);
-        if(i>0) pdf.addPage("a4","portrait");
-        pdf.addImage(img,"JPEG",0,0,210,297,undefined,"FAST");
-        canvas.width=1; canvas.height=1;
-        await new Promise(r=>setTimeout(r,10));
-      }
-
-      const modeLabel=mode==="problems"?"問題":mode==="solutions"?"解答":"問題解答";
-      const safeTitle=title.replace(/[（）]/g,"");
-      const filename=`計算トレーニング_${safeTitle}_${DIFFICULTY[d].replaceAll(" ","")}_${items.length}問_${modeLabel}.pdf`;
-      pdf.save(filename);
-      setStatus("PDFを生成しました",`${filename} を保存しました。`,false,false);
-    } finally {
-      root.remove();
+    // Clear prior MathJax generated content before typesetting a fresh set.
+    if(window.MathJax?.typesetClear){
+      try { window.MathJax.typesetClear([els.printRoot]); } catch(_){}
     }
+    await window.MathJax.typesetPromise([els.printRoot]);
+    if(document.fonts?.ready) await document.fonts.ready;
+    await new Promise(r=>setTimeout(r,180));
+
+    setStatus(
+      "印刷画面を開きます",
+      "印刷画面の「プリンター」または「送信先」で「PDFとして保存」を選択してください。",
+      false,
+      false
+    );
+
+    // Native browser print keeps MathJax text/vector quality and needs no extra PDF library.
+    window.print();
+
+    setTimeout(()=>{
+      els.printRoot.innerHTML="";
+      els.printRoot.setAttribute("aria-hidden","true");
+      setStatus(
+        "準備完了",
+        "別のPDFを作る場合は、条件を選び直して「PDFを作成」を押してください。",
+        false,
+        false
+      );
+    },500);
   }
 
   async function generatePdf(){
@@ -1374,15 +1367,17 @@ ${item.expr}
 
     els.generate.disabled=true;
     const original=els.generate.textContent;
-    els.generate.textContent="PDF作成中…";
+    els.generate.textContent="PDF準備中…";
     setStatus("問題を作成中",`${CATEGORY[key].name}の問題を${count}問生成しています…`,true,false);
 
     try{
       const items=makeSet(key,d,count);
-      await renderPdf(items,key,d,mode);
+      await openPrintPdf(items,key,d,mode);
     }catch(err){
       console.error(err);
-      setStatus("PDFを生成できませんでした",err?.message || "時間をおいてもう一度お試しください。",false,true);
+      els.printRoot.innerHTML="";
+      els.printRoot.setAttribute("aria-hidden","true");
+      setStatus("PDFを作成できませんでした",err?.message || "ページを再読み込みして、もう一度お試しください。",false,true);
     }finally{
       els.generate.disabled=false;
       els.generate.textContent=original;
