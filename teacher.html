@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0f172a">
-  <title>先生用 問題・新着情報編集ツール</title>
+  <title>先生用 問題データ編集ツール</title>
   <link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body class="teacher-page">
@@ -12,8 +12,8 @@
     <div class="container header-inner">
       <div>
         <p class="eyebrow">TEACHER TOOL</p>
-        <h1>先生用 管理ツール</h1>
-        <p class="header-copy">問題情報と新着情報を編集し、公開用JSONを書き出します。</p>
+        <h1>先生用 問題データ編集ツール</h1>
+        <p class="header-copy">問題情報を追加・編集し、公開用の problems.json を書き出します。</p>
       </div>
       <div class="header-badge"><span>先生用</span></div>
     </div>
@@ -21,35 +21,105 @@
 
   <main class="container teacher-layout">
     <section class="notice-box">
-      <strong>公開中のデータは、このページを開くと自動で読み込みます。</strong>
-      <p>変更後は <code>problems.json</code> または <code>news.json</code> を書き出し、GitHub上の同名ファイルと置き換えてください。この画面だけでは公開サイトは書き換わりません。</p>
+      <strong>この画面から公開サイトを直接書き換えることはありません。</strong>
+      <p>編集後に <code>problems.json</code> を書き出し、GitHub上の <code>data/problems.json</code> と置き換える方式です。公開データを書き換えられるのはGitHubリポジトリの編集権限を持つ人だけです。新しく登録した問題には登録日時が自動記録され、生徒用ページで7日間「NEW」と表示されます。</p>
     </section>
 
     <div class="teacher-grid">
       <section class="editor-card">
-        <div class="panel-title-row"><div><p class="results-label">問題の登録・編集</p><h2 id="formTitle">新しい問題を登録</h2></div><button id="clearForm" class="text-button" type="button">入力をクリア</button></div>
+        <div class="panel-title-row">
+          <div>
+            <p class="results-label">登録・編集</p>
+            <h2 id="formTitle">新しい問題を登録</h2>
+          </div>
+          <button id="clearForm" class="text-button" type="button">入力をクリア</button>
+        </div>
+
         <form id="problemForm">
           <input id="editingId" type="hidden">
+
           <div class="form-grid">
-            <label class="field field-wide"><span>問題タイトル <b>必須</b></span><input id="title" required placeholder="例：二次関数 演習01"></label>
-            <label class="field"><span>科目 <b>必須</b></span><select id="subject" required><option value="">選択してください</option><option>数学Ⅰ</option><option>数学Ⅱ</option><option>数学Ⅲ</option><option>数学A</option><option>数学B</option><option>数学C</option></select></label>
-            <label class="field"><span>単元 <b>必須</b></span><input id="unit" required placeholder="例：二次関数"></label>
-            <label class="field"><span>難易度 <b>必須</b></span><select id="difficulty" required><option value="1">★</option><option value="2" selected>★★</option><option value="3">★★★</option><option value="4">★★★★</option><option value="5">★★★★★</option></select></label>
-            <label class="field"><span>タグ</span><input id="tags" placeholder="推薦入試, 微分, 基礎"><small>カンマ区切り。「#」は入力してもしなくてもOKです。</small></label>
-            <label class="field field-wide"><span>問題PDFの共有リンク <b>必須</b></span><input id="problemUrl" type="url" required placeholder="https://..."><small>OneDriveで生徒が閲覧できる共有URLを貼ります。</small></label>
-            <label class="field field-wide"><span>解答PDFの共有リンク</span><input id="answerUrl" type="url" placeholder="https://..."></label>
-            <label class="field field-wide"><span>補足</span><textarea id="note" rows="3" placeholder="例：制限時間15分、学校推薦型選抜対策"></textarea></label>
+            <label class="field field-wide">
+              <span>問題タイトル <b>必須</b></span>
+              <input id="title" required placeholder="例：二次関数 演習01">
+            </label>
+
+            <label class="field">
+              <span>科目 <b>必須</b></span>
+              <select id="subject" required>
+                <option value="">選択してください</option>
+                <option>数学Ⅰ</option>
+                <option>数学Ⅱ</option>
+                <option>数学Ⅲ</option>
+                <option>数学A</option>
+                <option>数学B</option>
+                <option>数学C</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>単元 <b>必須</b></span>
+              <input id="unit" required placeholder="例：二次関数">
+            </label>
+
+            <label class="field">
+              <span>難易度 <b>必須</b></span>
+              <select id="difficulty" required>
+                <option value="1">★</option>
+                <option value="2" selected>★★</option>
+                <option value="3">★★★</option>
+                <option value="4">★★★★</option>
+                <option value="5">★★★★★</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>タグ</span>
+              <input id="tags" placeholder="推薦入試, 微分, 基礎">
+              <small>カンマ区切り。「#」は入力してもしなくてもOKです。</small>
+            </label>
+
+            <label class="field field-wide">
+              <span>問題PDFの共有リンク <b>必須</b></span>
+              <input id="problemUrl" type="url" required placeholder="https://...">
+              <small>OneDriveで「リンクを知っている人」または学校内で閲覧できる共有設定にしたURLを貼ります。</small>
+            </label>
+
+            <label class="field field-wide">
+              <span>解答PDFの共有リンク</span>
+              <input id="answerUrl" type="url" placeholder="https://...">
+            </label>
+
+            <label class="field field-wide">
+              <span>補足</span>
+              <textarea id="note" rows="3" placeholder="例：制限時間15分、学校推薦型選抜対策"></textarea>
+            </label>
           </div>
-          <div class="form-actions"><button class="primary-button" type="submit" id="saveButton">問題を追加</button><button class="secondary-button" type="button" id="cancelEdit" hidden>編集をキャンセル</button></div>
+
+          <div class="form-actions">
+            <button class="primary-button" type="submit" id="saveButton">問題を追加</button>
+            <button class="secondary-button" type="button" id="cancelEdit" hidden>編集をキャンセル</button>
+          </div>
         </form>
       </section>
 
       <aside class="workflow-card">
-        <p class="results-label">問題データ</p><h2>公開サイトへ反映</h2>
-        <ol class="workflow-list"><li>問題情報を追加・編集</li><li><code>problems.json</code> を書き出す</li><li>GitHubの <code>data/problems.json</code> と置き換える</li><li>Commit changes</li></ol>
+        <p class="results-label">更新の流れ</p>
+        <h2>公開サイトへ反映</h2>
+        <ol class="workflow-list">
+          <li>OneDriveに問題・解答PDFを保存</li>
+          <li>共有リンクをこの画面へ登録</li>
+          <li>「problems.jsonを書き出す」を押す</li>
+          <li>GitHubで <code>data/problems.json</code> を置き換える</li>
+          <li>GitHub Pagesへ自動反映</li>
+        </ol>
+
         <div class="tool-actions">
-          <button id="loadCurrent" class="secondary-button" type="button">公開データを再読み込み</button>
-          <label class="file-button">problems.jsonを読込<input id="importFile" type="file" accept=".json,application/json"></label>
+          <button id="loadCurrent" class="secondary-button" type="button">現在のJSONを読み込む</button>
+          <label class="file-button">
+            JSONをファイルから読込
+            <input id="importFile" type="file" accept=".json,application/json">
+          </label>
           <button id="exportJson" class="primary-button" type="button">problems.jsonを書き出す</button>
         </div>
         <p id="statusMessage" class="status-message" aria-live="polite"></p>
@@ -57,42 +127,17 @@
     </div>
 
     <section class="editor-card problem-admin-section">
-      <div class="results-head"><div><p class="results-label">登録済み問題</p><h2><span id="adminCount">0</span> 問</h2></div><label class="sort-control"><span>検索</span><input id="adminSearch" type="search" placeholder="タイトル・単元・タグ"></label></div>
-      <div id="adminList" class="admin-list"></div>
-    </section>
-
-    <div class="section-divider"><span>新着情報</span></div>
-
-    <div class="teacher-grid news-teacher-grid">
-      <section class="editor-card">
-        <div class="panel-title-row"><div><p class="results-label">新着情報の登録・編集</p><h2 id="newsFormTitle">新しい新着情報を登録</h2></div><button id="clearNewsForm" class="text-button" type="button">入力をクリア</button></div>
-        <form id="newsForm">
-          <input id="newsEditingId" type="hidden">
-          <div class="form-grid">
-            <label class="field"><span>日付 <b>必須</b></span><input id="newsDate" type="date" required></label>
-            <label class="field"><span>種類 <b>必須</b></span><select id="newsType" required><option>問題追加</option><option>解答追加</option><option>更新</option><option>お知らせ</option></select></label>
-            <label class="field field-wide"><span>タイトル <b>必須</b></span><input id="newsTitle" required placeholder="例：数学Ⅲ「微分法」の問題を追加しました"></label>
-            <label class="field field-wide"><span>内容</span><textarea id="newsContent" rows="3" placeholder="必要に応じて補足を書いてください。"></textarea></label>
-          </div>
-          <div class="form-actions"><button class="primary-button" type="submit" id="saveNewsButton">新着情報を追加</button><button class="secondary-button" type="button" id="cancelNewsEdit" hidden>編集をキャンセル</button></div>
-        </form>
-      </section>
-
-      <aside class="workflow-card">
-        <p class="results-label">新着情報データ</p><h2>最新5件を表示</h2>
-        <p class="workflow-copy">生徒用ページでは、日付の新しい順に最新5件だけ表示します。直近7日以内の情報には <strong>NEW</strong> が付きます。</p>
-        <div class="tool-actions">
-          <button id="loadCurrentNews" class="secondary-button" type="button">新着情報を再読み込み</button>
-          <label class="file-button">news.jsonを読込<input id="importNewsFile" type="file" accept=".json,application/json"></label>
-          <button id="exportNewsJson" class="primary-button" type="button">news.jsonを書き出す</button>
+      <div class="results-head">
+        <div>
+          <p class="results-label">登録済みデータ</p>
+          <h2><span id="adminCount">0</span> 問</h2>
         </div>
-        <p id="newsStatusMessage" class="status-message" aria-live="polite"></p>
-      </aside>
-    </div>
-
-    <section class="editor-card problem-admin-section">
-      <div class="results-head"><div><p class="results-label">登録済み新着情報</p><h2><span id="newsAdminCount">0</span> 件</h2></div><label class="sort-control"><span>検索</span><input id="newsAdminSearch" type="search" placeholder="タイトル・内容・種類"></label></div>
-      <div id="newsAdminList" class="admin-list"></div>
+        <label class="sort-control">
+          <span>検索</span>
+          <input id="adminSearch" type="search" placeholder="タイトル・単元・タグ">
+        </label>
+      </div>
+      <div id="adminList" class="admin-list"></div>
     </section>
   </main>
 
