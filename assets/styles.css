@@ -631,7 +631,14 @@ textarea{resize:vertical}
 
 /* Hidden A4 render surface used only while creating a PDF. */
 #printRoot{
-  display:none;
+  position:fixed;
+  left:-12000px;
+  top:0;
+  width:794px;
+  visibility:hidden;
+  pointer-events:none;
+  background:#fff;
+  z-index:-9999;
 }
 .pdf-page{
   box-sizing:border-box;
@@ -800,6 +807,12 @@ textarea{resize:vertical}
 
   #printRoot{
     display:block !important;
+    position:static !important;
+    left:auto !important;
+    top:auto !important;
+    visibility:visible !important;
+    pointer-events:auto !important;
+    z-index:auto !important;
     width:210mm !important;
     margin:0 !important;
     padding:0 !important;
