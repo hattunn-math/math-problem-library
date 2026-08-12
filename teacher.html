@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0f172a">
   <title>先生用 問題データ編集ツール</title>
-  <link rel="stylesheet" href="./assets/styles.css">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260812-6">
 </head>
 <body class="teacher-page">
   <header class="site-header teacher-header">
@@ -23,6 +23,49 @@
     <section class="notice-box">
       <strong>この画面から公開サイトを直接書き換えることはありません。</strong>
       <p>編集後に <code>problems.json</code> を書き出し、GitHub上の <code>data/problems.json</code> と置き換える方式です。公開データを書き換えられるのはGitHubリポジトリの編集権限を持つ人だけです。新しく登録した問題には登録日時が自動記録され、生徒用ページで7日間「NEW」と表示されます。</p>
+    </section>
+
+    <section class="analytics-card" aria-labelledby="analyticsTitle">
+      <div class="analytics-head">
+        <div>
+          <p class="results-label">SITE ANALYTICS</p>
+          <h2 id="analyticsTitle">📊 サイト利用状況</h2>
+          <p>生徒用サイト <code>index.html</code> の利用状況だけを集計します。先生用ページの閲覧はカウントしません。</p>
+        </div>
+        <button id="refreshAnalytics" class="secondary-button analytics-refresh" type="button">↻ 更新</button>
+      </div>
+
+      <div class="analytics-stats">
+        <div class="analytics-stat">
+          <span class="analytics-stat-label">本日の閲覧者数</span>
+          <strong id="todayVisitorCount" class="analytics-stat-number">—</strong>
+          <small>本日（日本時間）の訪問カウント</small>
+        </div>
+        <div class="analytics-stat">
+          <span class="analytics-stat-label">累計の閲覧者数</span>
+          <strong id="totalVisitorCount" class="analytics-stat-number">—</strong>
+          <small>集計開始からの訪問カウント</small>
+        </div>
+      </div>
+
+      <div class="analytics-status-row">
+        <p id="analyticsStatus" class="analytics-status" aria-live="polite">利用状況を確認しています…</p>
+        <span id="analyticsUpdatedAt" class="analytics-updated"></span>
+      </div>
+
+      <div id="analyticsSetupHint" class="analytics-setup-hint" hidden>
+        <strong>初回設定が必要です</strong>
+        <p>
+          GoatCounterでサイトを作成し、<code>assets/analytics-config.js</code> の
+          <code>YOUR_GOATCOUNTER_CODE</code> を自分のCodeに置き換えてください。
+          また、GoatCounter側で「Allow adding visitor counts on your website」を有効にしてください。
+        </p>
+      </div>
+
+      <p class="analytics-note">
+        ※ここでいう「閲覧者数」は、個人を永続的に識別した実人数ではなくGoatCounterの訪問カウントです。
+        同じ人の再読み込みなどはセッションとしてまとめられる場合があります。
+      </p>
     </section>
 
     <div class="teacher-grid">
@@ -141,6 +184,8 @@
     </section>
   </main>
 
+  <script src="./assets/analytics-config.js?v=20260812-6"></script>
+  <script src="./assets/teacher-analytics.js?v=20260812-6" defer></script>
   <script src="./assets/teacher.js" defer></script>
 </body>
 </html>
