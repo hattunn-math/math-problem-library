@@ -1015,3 +1015,145 @@ textarea{resize:vertical}
     display:none !important;
   }
 }
+
+
+/* === Teacher site analytics v6 === */
+.analytics-card{
+  margin:18px 0 22px;
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.05);
+}
+
+.analytics-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:18px;
+}
+
+.analytics-head h2{
+  margin:2px 0 5px;
+}
+
+.analytics-head p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.65;
+}
+
+.analytics-refresh{
+  flex:0 0 auto;
+}
+
+.analytics-stats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+
+.analytics-stat{
+  padding:18px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#f8fafc;
+}
+
+.analytics-stat-label{
+  display:block;
+  margin-bottom:6px;
+  color:#536176;
+  font-size:.82rem;
+  font-weight:800;
+}
+
+.analytics-stat-number{
+  display:block;
+  font-size:2rem;
+  line-height:1.1;
+  letter-spacing:-.02em;
+}
+
+.analytics-stat small{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:.72rem;
+}
+
+.analytics-status-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-top:13px;
+}
+
+.analytics-status{
+  margin:0;
+  color:var(--muted);
+  font-size:.78rem;
+  line-height:1.6;
+}
+
+.analytics-status.warning{
+  color:#8a5a00;
+}
+
+.analytics-status.error{
+  color:#b42318;
+}
+
+.analytics-updated{
+  flex:0 0 auto;
+  color:var(--muted);
+  font-size:.72rem;
+}
+
+.analytics-setup-hint{
+  margin-top:13px;
+  padding:12px 14px;
+  border:1px solid #e5c46b;
+  border-radius:10px;
+  background:#fff9e8;
+  color:#6d4b00;
+}
+
+.analytics-setup-hint strong{
+  font-size:.82rem;
+}
+
+.analytics-setup-hint p{
+  margin:4px 0 0;
+  font-size:.77rem;
+  line-height:1.65;
+}
+
+.analytics-note{
+  margin:12px 0 0;
+  color:var(--muted);
+  font-size:.72rem;
+  line-height:1.6;
+}
+
+@media (max-width:680px){
+  .analytics-head{
+    flex-direction:column;
+  }
+
+  .analytics-refresh{
+    width:100%;
+  }
+
+  .analytics-stats{
+    grid-template-columns:1fr;
+  }
+
+  .analytics-status-row{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
