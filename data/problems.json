@@ -1,5 +1,56 @@
 [
   {
+    "id": "d8e5ad1f-63c8-4aba-8d45-e9455e982756",
+    "title": "県模試(数列)の類題",
+    "subject": "数学B",
+    "unit": "数列",
+    "difficulty": 3,
+    "tags": [
+      "県模試",
+      "3年8月β",
+      "数列",
+      "等差数列"
+    ],
+    "problemUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQCCqXTS7hlKR4svh_cZ52AjAfBQyvIcKdx1IGu8RemZYqE?e=ReRCie",
+    "answerUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQAWj5936tXaQp3rjlYb6LW5AWYNsfzIYZNkpDlhBDUW2Zs?e=ETD9G9",
+    "note": "県模試3年8月βの(1)を意識して作成しています。(2年生でもできる内容です。)",
+    "createdAt": "2026-08-14T14:34:14.869Z"
+  },
+  {
+    "id": "b061959d-fe45-4b6b-91e2-7548f0a940c7",
+    "title": "県模試(数列)の類題",
+    "subject": "数学B",
+    "unit": "数列",
+    "difficulty": 3,
+    "tags": [
+      "県模試",
+      "3年8月β",
+      "数列",
+      "等差数列"
+    ],
+    "problemUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQBiUDfYy4MMQICZbfmWIdyEAW2BskyS8BukzmnRBFBa0_U?e=Urcvc6",
+    "answerUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQAQdGMJjnItQ7xMgpeFJUAsAfrTCvCaqxKWKIHTrWFsg78?e=ppZCbz",
+    "note": "県模試3年8月βの(1)を意識して作成しています。(2年生でもできる内容です。)",
+    "createdAt": "2026-08-14T14:33:00.057Z"
+  },
+  {
+    "id": "edd4b528-a2f3-4853-a4e0-a5f0801fb83e",
+    "title": "県模試(数列)の類題",
+    "subject": "数学B",
+    "unit": "数列",
+    "difficulty": 3,
+    "tags": [
+      "県模試",
+      "3年8月β",
+      "数列",
+      "等差数列"
+    ],
+    "problemUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQDvx6byamSHRa9FDztjh2c2AaDunWnSFbYPKq-r-jsqcn4?e=PUiUvj",
+    "answerUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQCgzic5reVBT7yXI9uOI4aqAZ_il-S4GEV648AN2YgY8L4?e=oMZXTz",
+    "note": "県模試3年8月βの(1)を意識して作成しています。(2年生でもできる内容です。)",
+    "createdAt": "2026-08-14T14:31:41.728Z"
+  },
+  {
     "id": "c615fdae-6ce6-4d7e-9de3-defdfdb7096d",
     "title": "水産大学校（学校推薦型選抜）数学 大問2対策・類題 No.1",
     "subject": "数学Ⅰ",
@@ -18,9 +69,9 @@
   },
   {
     "id": "52ab603f-6a46-45aa-aaca-bad78699c64d",
-    "title": "県模試3年8月β大問1(小問集合)の類題No.01",
+    "title": "県模試(小問集合)の類題",
     "subject": "数学Ⅰ",
-    "unit": "式と計算",
+    "unit": "数と式",
     "difficulty": 2,
     "tags": [
       "県模試",
