@@ -6,6 +6,40 @@
   <meta name="theme-color" content="#0f172a">
   <title>先生用 問題データ編集ツール</title>
   <link rel="stylesheet" href="./assets/styles.css?v=20260812-6">
+
+  <style>
+    .teacher-student-link-wrap{
+      display:flex;
+      justify-content:flex-end;
+      margin:0 0 16px;
+    }
+    .teacher-student-link{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.4em;
+      padding:10px 14px;
+      border:1px solid #cbd5e1;
+      border-radius:10px;
+      background:#fff;
+      color:#0f172a;
+      font-weight:700;
+      text-decoration:none;
+      box-shadow:0 4px 12px rgba(15,23,42,.06);
+    }
+    .teacher-student-link:hover{
+      background:#f8fafc;
+    }
+    @media (max-width:680px){
+      .teacher-student-link-wrap{
+        justify-content:stretch;
+      }
+      .teacher-student-link{
+        width:100%;
+      }
+    }
+  </style>
+
 </head>
 <body class="teacher-page">
   <header class="site-header teacher-header">
@@ -20,6 +54,16 @@
   </header>
 
   <main class="container teacher-layout">
+
+    <div class="teacher-student-link-wrap">
+      <a
+        class="teacher-student-link"
+        href="https://hattunn-math.github.io/math-problem-library/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >👨‍🎓 生徒用ページを開く</a>
+    </div>
+
     <section class="notice-box">
       <strong>この画面から公開サイトを直接書き換えることはありません。</strong>
       <p>編集後に <code>problems.json</code> を書き出し、GitHub上の <code>data/problems.json</code> と置き換える方式です。公開データを書き換えられるのはGitHubリポジトリの編集権限を持つ人だけです。新しく登録した問題には登録日時が自動記録され、生徒用ページで7日間「NEW」と表示されます。</p>
