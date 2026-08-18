@@ -3,314 +3,201 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0f172a">
-  <title>数学問題ライブラリ</title>
-  <meta name="description" content="単元・難易度・タグから数学の問題PDFを検索できる生徒向けページです。">
-  <link rel="stylesheet" href="./assets/styles.css?v=20260812-6">
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['\\(', '\\)']],
-        displayMath: [['\\[', '\\]']]
-      },
-      svg: { fontCache: 'global' }
-    };
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <title>時間割変更アプリ</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
+<header class="topbar">
+  <div>
+    <h1>時間割変更アプリ</h1>
+    <p>個人利用・GitHub Pages版 / データはブラウザに保存</p>
+  </div>
+  <span class="version">v1.6.1</span>
+</header>
+
+<nav class="tabs">
+  <button data-tab="daily" class="active">日々の変更</button>
+  <button data-tab="base">通常時間割</button>
+  <button data-tab="conditions">変更条件</button>
+  <button data-tab="teachers">教員設定</button>
+  <button data-tab="history">変更履歴</button>
+  <button data-tab="backup">バックアップ</button>
+</nav>
+
+<main>
+  <!-- 日々の変更 -->
+  <section id="daily" class="tab active">
+    <div class="toolbar card">
       <div>
-        <p class="eyebrow">MATH PROBLEM LIBRARY</p>
-        <h1>数学問題ライブラリ</h1>
-        <p class="header-copy">単元・難易度・タグから、取り組みたい問題をすぐに探せます。</p>
+        <label>表示</label>
+        <div class="segmented">
+          <button id="dailyModeDay" class="mode-btn active" type="button">曜日別</button>
+          <button id="dailyModeClass" class="mode-btn" type="button">クラス別</button>
+        </div>
       </div>
-      <div class="header-badge" aria-label="生徒用">
-        <span>生徒用</span>
-      </div>
+      <div><label>基準日</label><input type="date" id="dailyDate"></div>
+      <div id="selectedWeekday" class="date-weekday"></div>
+      <div id="dailyClassWrap" class="hidden"><label>クラス</label><select id="dailyClass"></select></div>
+      <button id="resetDayBtn" class="danger-outline">この日の変更をすべて解除</button>
     </div>
-  </header>
 
-
-  <nav class="container view-switcher" aria-label="表示切替">
-    <button id="showLibraryView" class="view-switch-button active" type="button" aria-pressed="true">
-      📚 問題ライブラリ
-    </button>
-    <button id="showTrainingView" class="view-switch-button" type="button" aria-pressed="false">
-      🧮 計算トレーニング
-    </button>
-  </nav>
-
-  <section id="libraryView" class="container main-grid site-view" aria-label="問題ライブラリ">
-    <aside class="filter-panel" aria-label="検索条件">
-      <div class="panel-title-row">
-        <h2>問題を絞り込む</h2>
-        <button id="resetFilters" class="text-button" type="button">リセット</button>
-      </div>
-
-      <label class="field">
-        <span>キーワード</span>
-        <input id="searchInput" type="search" placeholder="例：微分、推薦、共通テスト">
-      </label>
-
-      <label class="field">
-        <span>科目</span>
-        <select id="subjectFilter">
-          <option value="">すべて</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>単元</span>
-        <select id="unitFilter">
-          <option value="">すべて</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>難易度</span>
-        <select id="difficultyFilter">
-          <option value="">すべて</option>
-          <option value="1">★</option>
-          <option value="2">★★</option>
-          <option value="3">★★★</option>
-          <option value="4">★★★★</option>
-          <option value="5">★★★★★</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>学習状況</span>
-        <select id="progressFilter">
-          <option value="">すべて</option>
-          <option value="unsolved">未解答のみ</option>
-          <option value="solved">解答済みのみ</option>
-        </select>
-      </label>
-
-      <label class="toggle-field">
-        <input id="favoriteOnly" type="checkbox">
-        <span>★ お気に入りのみ表示</span>
-      </label>
-
-      <div class="field">
-        <span>#タグ</span>
-        <div id="tagFilters" class="tag-filter-list" aria-label="タグ一覧"></div>
-      </div>
-
-      <p class="storage-note">お気に入り・解答済みは、この端末のブラウザ内に保存されます。</p>
-    </aside>
-
-    <section class="content-panel">
-      <section id="newProblemsSection" class="new-problems-panel" aria-labelledby="newProblemsTitle" hidden>
-        <div class="new-problems-head">
-          <div>
-            <p class="results-label">RECENTLY ADDED</p>
-            <h2 id="newProblemsTitle">🆕 新着問題</h2>
-          </div>
-          <span class="new-problems-note">登録から7日以内・最新5件</span>
-        </div>
-        <div id="newProblemsList" class="new-problems-list"></div>
-      </section>
-
-      <div class="progress-summary" aria-label="学習状況">
-        <div class="summary-item">
-          <span class="summary-label">全問題</span>
-          <strong id="totalProblemCount">0</strong>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">お気に入り</span>
-          <strong id="favoriteCount">0</strong>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">解答済み</span>
-          <strong id="solvedCount">0</strong>
-        </div>
-      </div>
-
-      <div class="results-head">
+    <div class="card">
+      <div class="heading-row">
         <div>
-          <p class="results-label">検索結果</p>
-          <h2><span id="resultCount">0</span> 問</h2>
+          <h2 id="dailyViewTitle">全クラスの日別時間割</h2>
+          <p id="dailyViewHelp" class="muted">指定した日の全学年・全クラスを一覧表示します。</p>
         </div>
-        <label class="sort-control">
-          <span>並び順</span>
-          <select id="sortSelect">
-            <option value="newest">新しい順</option>
-            <option value="oldest">古い順</option>
-            <option value="title">タイトル順</option>
-            <option value="difficultyAsc">難易度が低い順</option>
-            <option value="difficultyDesc">難易度が高い順</option>
-          </select>
-        </label>
+        <div class="legend">
+          <span><i class="dot changed"></i>変更あり</span>
+          <span><i class="dot conflict"></i>重複・勤務時間外</span>
+        </div>
       </div>
+      <div class="table-wrap"><table id="dailyTable" class="fixed-timetable"></table></div>
+      <div id="dailyStatus"></div>
+    </div>
 
-      <div id="activeFilters" class="active-filters" aria-live="polite"></div>
-      <div id="problemList" class="problem-list" aria-live="polite"></div>
+    <div class="card">
+      <h2>教員別 担当一覧</h2>
+      <p class="muted">基準日に、各先生がどのクラスで何の授業を担当しているかを、担当教科順に表示します。</p>
+      <div class="table-wrap"><table id="teacherDayTable" class="teacher-day-table"></table></div>
+    </div>
 
-      <div id="emptyState" class="empty-state" hidden>
-        <div class="empty-icon">∅</div>
-        <h3>該当する問題がありません</h3>
-        <p>検索条件を少し広げてみてください。</p>
-      </div>
-
-      <div id="loadError" class="error-state" hidden>
-        <h3>問題データを読み込めませんでした</h3>
-        <p>公開ファイル <code>data/problems.json</code> を確認してください。</p>
-      </div>
-    </section>
+    <div class="card">
+      <h2>当日の変更一覧</h2>
+      <div id="dailyChanges"></div>
+    </div>
   </section>
 
-  <section id="trainingView" class="container training-view site-view" aria-label="計算トレーニング" hidden>
-    <div class="training-intro">
+  <!-- 通常時間割 -->
+  <section id="base" class="tab">
+    <div class="toolbar card">
       <div>
-        <p class="results-label">PDF PRACTICE GENERATOR</p>
-        <h2>🧮 計算プリント自動作成</h2>
-        <p>条件を選ぶと、PDFと同じA4レイアウトをサイト内で確認してから保存できます。</p>
+        <label>表示</label>
+        <div class="segmented">
+          <button id="baseModeClass" class="mode-btn active" type="button">クラス別</button>
+          <button id="baseModeDay" class="mode-btn" type="button">曜日別</button>
+        </div>
       </div>
-      <div class="training-free-badge">A4プレビュー</div>
+      <div id="baseClassWrap"><label>クラス</label><select id="baseClass"></select></div>
+      <div id="baseDayWrap" class="hidden"><label>曜日</label><select id="baseDay"></select></div>
+      <button id="addClassBtn" class="sub">クラス追加</button>
+      <button id="renameClassBtn" class="sub">クラス名変更</button>
+      <button id="deleteClassBtn" class="danger-outline">クラス削除</button>
+      <button id="zeroPeriodBtn" class="sub">0校時を追加</button>
     </div>
 
-    <div class="training-layout">
-      <aside class="training-controls">
-        <div class="panel-title-row">
-          <h2>出題設定</h2>
-        </div>
-
-        <label class="field">
-          <span>分野</span>
-          <select id="trainingCategory">
-            <optgroup label="式と計算">
-              <option value="expand">展開</option>
-              <option value="factor">因数分解</option>
-            </optgroup>
-            <optgroup label="二次関数">
-              <option value="completeSquare">平方完成</option>
-            </optgroup>
-            <optgroup label="数学Ⅱ・微積分">
-              <option value="diff2">微分（数学Ⅱ）</option>
-              <option value="indef2">不定積分（数学Ⅱ）</option>
-              <option value="def2">定積分（数学Ⅱ）</option>
-            </optgroup>
-            <optgroup label="数学Ⅲ・微積分">
-              <option value="diff3">微分（数学Ⅲ）</option>
-              <option value="indef3">不定積分（数学Ⅲ）</option>
-              <option value="def3">定積分（数学Ⅲ）</option>
-            </optgroup>
-          </select>
-          <small id="categoryGroupLabel">【式と計算】</small>
-        </label>
-
-        <label class="field">
-          <span>難易度</span>
-          <select id="trainingDifficulty">
-            <option value="1">★ 基礎</option>
-            <option value="2">★★ 標準</option>
-            <option value="3" selected>★★★ 模試</option>
-            <option value="4">★★★★ 入試標準</option>
-            <option value="5">★★★★★ 入試発展</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>問題数</span>
-          <select id="trainingCount">
-            <option value="5">5問</option>
-            <option value="10" selected>10問</option>
-            <option value="15">15問</option>
-            <option value="20">20問</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>PDFの内容</span>
-          <select id="trainingPdfMode">
-            <option value="full" selected>問題＋解答・途中式</option>
-            <option value="problems">問題のみ</option>
-            <option value="solutions">解答・途中式のみ</option>
-          </select>
-        </label>
-
-        <button id="generateTraining" class="primary-button training-generate-button" type="button">
-          👀 プレビューを作成
-        </button>
-
-        <div class="training-rule-note">
-          <strong>出題方針</strong>
-          <p id="trainingRuleText">難易度に応じて、文字・分数・複数段階の処理を組み合わせます。</p>
-        </div>
-      </aside>
-
-      <section class="training-results pdf-generator-guide">
-        <div class="pdf-guide-icon">A4</div>
-        <h2>PDFになるプリントを先に確認</h2>
-        <p>「プレビューを作成」を押すと、このページの下にA4プリントがそのまま表示されます。内容を確認してからPDFとして保存できます。</p>
-
-        <div class="pdf-feature-grid">
-          <div>
-            <strong>プレビュー</strong>
-            <span>PDFと同じ問題・ページ構成を表示</span>
-          </div>
-          <div>
-            <strong>問題編</strong>
-            <span>氏名欄・計算スペース付き</span>
-          </div>
-          <div>
-            <strong>解答編</strong>
-            <span>平方完成・微分・積分は途中式付き</span>
-          </div>
-          <div>
-            <strong>PDF保存</strong>
-            <span>確認した問題をそのまま印刷・保存</span>
-          </div>
-        </div>
-
-        <div id="pdfStatus" class="pdf-status" role="status" aria-live="polite">
-          <strong>準備完了（A4プレビュー版 v13）</strong>
-          <span id="pdfStatusDetail">左の条件を選んで「プレビューを作成」を押してください。</span>
-        </div>
-      </section>
+    <div class="card">
+      <h2 id="baseViewTitle">通常時間割の登録</h2>
+      <p class="muted">セルをクリックして、科目・参加クラス・担当教員・教室を登録してください。</p>
+      <div class="table-wrap"><table id="baseTable" class="fixed-timetable"></table></div>
     </div>
-
-    <section id="trainingPreviewSection" class="training-preview-section" hidden aria-label="計算プリントプレビュー">
-      <div class="training-preview-head">
-        <div>
-          <p class="results-label">PRINT PREVIEW</p>
-          <h2>📄 A4プリント プレビュー</h2>
-          <p id="previewSummary">生成したプリントを確認できます。</p>
-        </div>
-        <div class="training-preview-actions">
-          <button id="regenerateTraining" class="secondary-button" type="button">
-            🔄 別の問題を作成
-          </button>
-          <button id="printTraining" class="primary-button" type="button">
-            📄 PDFとして保存
-          </button>
-        </div>
-      </div>
-
-      <div class="preview-help">
-        下の表示がそのままPDFになります。「PDFとして保存」を押した後、印刷画面の送信先で「PDFとして保存」を選択してください。
-      </div>
-
-      <div id="trainingPreviewViewport" class="training-preview-viewport">
-        <div id="trainingPreviewPages" class="training-preview-pages"></div>
-      </div>
-    </section>
   </section>
 
-  <div id="printRoot" aria-hidden="true"></div>
-
-  <footer class="site-footer">
-    <div class="container">
-      <p>PDFはOneDriveなどの共有リンクから開きます。</p>
+  <!-- 変更条件 -->
+  <section id="conditions" class="tab">
+    <div class="card">
+      <h2>変更条件の一括入力</h2>
+      <p class="muted">1行につき1条件。例：<code>田中,不在,月,1-4</code> / <code>体育館,使用不可,火,3-5</code></p>
+      <textarea id="conditionText" rows="10" placeholder="田中,不在,月,1-4&#10;佐藤,不在,火,終日&#10;体育館,使用不可,木,3-5"></textarea>
+      <div class="actions">
+        <button id="analyzeConditionsBtn" class="primary">条件を解析</button>
+        <button id="applyConditionsBtn" class="sub">安全な変更だけ自動反映</button>
+      </div>
+      <div id="conditionResult"></div>
     </div>
-  </footer>
+  </section>
 
-  <script src="./assets/analytics-config.js?v=20260812-6"></script>
-  <script src="./assets/analytics.js?v=20260812-6"></script>
-  <script src="./assets/app.js" defer></script>
-  <script src="./assets/training-preview-v13.js?v=20260813-13" defer></script>
+  <!-- 教員設定 -->
+  <section id="teachers" class="tab">
+    <div class="card">
+      <h2>教員設定</h2>
+      <p class="muted">教員ごとに担当教科・勤務形態・勤務可能校時を設定します。教員別一覧は下の教科順で自動整列します。</p>
+      <div class="teacher-add-form">
+        <div><label>教員名</label><input id="teacherName" placeholder="例：田中"></div>
+        <div><label>担当教科</label><select id="teacherDepartment"></select></div>
+        <div><label>勤務形態</label><select id="teacherEmployment"><option value="常勤">常勤</option><option value="非常勤">非常勤</option></select></div>
+        <button id="addTeacherBtn" class="primary">教員を追加</button>
+      </div>
+      <div class="department-order">
+        表示順：国語 → 数学 → 英語 → 理科 → 社会 → 芸術 → 家庭科 → 体育 → 商業
+      </div>
+      <div class="teacher-filter-bar">
+        <div>
+          <label>教科で絞り込み</label>
+          <select id="teacherFilterDepartment"></select>
+        </div>
+        <div class="small">↑↓ボタンで、同じ教科内の表示順を変更できます。</div>
+      </div>
+      <div id="teacherCards" class="teacher-cards"></div>
+    </div>
+  </section>
+
+  <section id="history" class="tab">
+    <div class="card"><h2>変更履歴</h2><div id="historyList"></div></div>
+  </section>
+
+  <section id="backup" class="tab">
+    <div class="card">
+      <h2>バックアップ</h2>
+      <p>更新前や大きな編集後にJSONを書き出しておくことをおすすめします。</p>
+      <div class="actions">
+        <button id="exportBtn" class="primary">JSONを書き出す</button>
+        <label class="file-button">JSONを読み込む<input id="importInput" type="file" accept=".json" hidden></label>
+        <button id="clearAllBtn" class="danger-outline">全データ初期化</button>
+      </div>
+      <div class="note"><strong>重要：</strong>同じGitHub Pages URL・同じブラウザなら、アプリ更新後もLocalStorageのデータを引き継ぎます。</div>
+    </div>
+  </section>
+</main>
+
+<!-- 授業編集 -->
+<dialog id="lessonDialog">
+  <form method="dialog" id="lessonForm">
+    <div class="dialog-head"><strong id="dialogTitle">授業編集</strong><button value="cancel" class="icon">×</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <div><label>曜日</label><select id="editDay"></select></div>
+        <div><label>校時</label><select id="editPeriod"></select></div>
+        <div class="full"><label>科目名</label><input id="editSubject" placeholder="例：数学Ⅱ / LHR / 探究"></div>
+
+        <div class="full">
+          <label>参加クラス（合同授業の場合は複数選択）</label>
+          <div id="participantChecks" class="choice-grid"></div>
+        </div>
+
+        <div class="full">
+          <label>担当教員（複数選択可）</label>
+          <div id="teacherChecks" class="choice-grid"></div>
+          <div id="teacherUnregisteredNote" class="small warning-text"></div>
+        </div>
+
+        <div class="full">
+          <label>欠員表示（不在の担当教員）</label>
+          <div id="absentChecks" class="choice-grid compact"></div>
+        </div>
+
+        <div class="full">
+          <label>代講教員</label>
+          <select id="editSubstitute"><option value="">なし</option></select>
+        </div>
+
+        <div class="full">
+          <label>教室・授業場所（複数の場合は「,」区切り）</label>
+          <input id="editRooms" placeholder="例：2-1,2-2,選択教室A">
+        </div>
+      </div>
+      <div id="editorWarnings"></div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="copyLessonBtn" class="sub">セルをコピー</button>
+      <button type="button" id="pasteLessonBtn" class="sub">貼り付け</button>
+      <button type="button" id="deleteLessonBtn" class="danger-outline">削除</button>
+      <button value="cancel" class="sub">キャンセル</button>
+      <button type="button" id="saveLessonBtn" class="primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app-v161.js"></script>
 </body>
 </html>
