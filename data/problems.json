@@ -1,5 +1,23 @@
 [
   {
+    "id": "407659c7-cc13-4098-a009-528ab143dab3",
+    "title": "県模試(ベクトル)の類題",
+    "subject": "数学C",
+    "unit": "ベクトル",
+    "difficulty": 4,
+    "tags": [
+      "県模試",
+      "3年8月",
+      "ベクトル",
+      "空間ベクトル",
+      "内分外分"
+    ],
+    "problemUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQBh3SXDVaEPSr7mgls5QtpuAV-P6XQace6pOMyW3cZm9WA?e=hZkZUJ",
+    "answerUrl": "https://sagakuseiei-my.sharepoint.com/:b:/g/personal/hatsuku-yuhei_sagakuseiei_onmicrosoft_com/IQBmF-_S7Uo2TJdGWTBB9jPQAfM6Yjzql8i_3viKTPd0-tI?e=a7VpWm",
+    "note": "空間ベクトルまで学習していれば2年生でも解くことができます。",
+    "createdAt": "2026-08-19T23:56:52.321Z"
+  },
+  {
     "id": "d8e5ad1f-63c8-4aba-8d45-e9455e982756",
     "title": "県模試(数列)の類題",
     "subject": "数学B",
